@@ -1,0 +1,48 @@
+{
+  "scenario": "linkfail",
+  "mode": "app_aware",
+  "t0": 1792733185.3366764,
+  "total_time": 42,
+  "ping_loss_pct": 0.0,
+  "packet_size": 1200,
+  "link_capacity_mbps": 10,
+  "flows": [
+    {
+      "name": "A",
+      "src": "h1",
+      "dst": "h3",
+      "sport": 40001,
+      "dport": 5001,
+      "rate": 3.0,
+      "start": 2,
+      "stop": 40
+    },
+    {
+      "name": "B",
+      "src": "h2",
+      "dst": "h4",
+      "sport": 40002,
+      "dport": 5002,
+      "rate": 3.0,
+      "start": 2,
+      "stop": 40
+    }
+  ],
+  "link_events": [
+    {
+      "t": 12,
+      "a": "s1",
+      "b": "s2",
+      "state": "down",
+      "actual_t": 12.02999234199524
+    },
+    {
+      "t": 24,
+      "a": "s1",
+      "b": "s2",
+      "state": "up",
+      "actual_t": 24.085489511489868
+    }
+  ],
+  "rate": null
+}

@@ -1,0 +1,22 @@
+===== t = 8.0 s (linkfail, static) =====
+ cookie=0x0, duration=6.025s, table=0, n_packets=1721, n_bytes=2137482, idle_timeout=10, priority=300,udp,nw_src=10.0.0.2,nw_dst=10.0.0.4,tp_src=40002,tp_dst=5002 actions=output:"s1-eth3"
+ cookie=0x0, duration=5.983s, table=0, n_packets=1721, n_bytes=2137482, idle_timeout=10, priority=300,udp,nw_src=10.0.0.1,nw_dst=10.0.0.3,tp_src=40001,tp_dst=5001 actions=output:"s1-eth3"
+ cookie=0x0, duration=5.981s, table=0, n_packets=12, n_bytes=1012, idle_timeout=10, priority=300,udp,nw_src=10.0.0.4,nw_dst=10.0.0.2,tp_src=5002,tp_dst=40002 actions=output:"s1-eth2"
+ cookie=0x0, duration=5.980s, table=0, n_packets=12, n_bytes=1012, idle_timeout=10, priority=300,udp,nw_src=10.0.0.3,nw_dst=10.0.0.1,tp_src=5001,tp_dst=40001 actions=output:"s1-eth1"
+ cookie=0x0, duration=16.099s, table=0, n_packets=1, n_bytes=88, priority=200,udp,in_port="s1-eth1" actions=CONTROLLER:65535
+ cookie=0x0, duration=16.099s, table=0, n_packets=1, n_bytes=88, priority=200,udp,in_port="s1-eth2" actions=CONTROLLER:65535
+
+===== t = 16.1 s (linkfail, static) =====
+ cookie=0x0, duration=14.086s, table=0, n_packets=4373, n_bytes=5431266, idle_timeout=10, priority=300,udp,nw_src=10.0.0.2,nw_dst=10.0.0.4,tp_src=40002,tp_dst=5002 actions=output:"s1-eth3"
+ cookie=0x0, duration=14.044s, table=0, n_packets=4373, n_bytes=5431266, idle_timeout=10, priority=300,udp,nw_src=10.0.0.1,nw_dst=10.0.0.3,tp_src=40001,tp_dst=5001 actions=output:"s1-eth3"
+ cookie=0x0, duration=14.042s, table=0, n_packets=21, n_bytes=1786, idle_timeout=10, priority=300,udp,nw_src=10.0.0.4,nw_dst=10.0.0.2,tp_src=5002,tp_dst=40002 actions=output:"s1-eth2"
+ cookie=0x0, duration=14.041s, table=0, n_packets=21, n_bytes=1786, idle_timeout=10, priority=300,udp,nw_src=10.0.0.3,nw_dst=10.0.0.1,tp_src=5001,tp_dst=40001 actions=output:"s1-eth1"
+ cookie=0x0, duration=24.160s, table=0, n_packets=1, n_bytes=88, priority=200,udp,in_port="s1-eth1" actions=CONTROLLER:65535
+ cookie=0x0, duration=24.160s, table=0, n_packets=1, n_bytes=88, priority=200,udp,in_port="s1-eth2" actions=CONTROLLER:65535
+
+===== t = 30.0 s (linkfail, static) =====
+ cookie=0x0, duration=28.047s, table=0, n_packets=8612, n_bytes=10696104, idle_timeout=10, priority=300,udp,nw_src=10.0.0.2,nw_dst=10.0.0.4,tp_src=40002,tp_dst=5002 actions=output:"s1-eth3"
+ cookie=0x0, duration=28.005s, table=0, n_packets=8612, n_bytes=10696104, idle_timeout=10, priority=300,udp,nw_src=10.0.0.1,nw_dst=10.0.0.3,tp_src=40001,tp_dst=5001 actions=output:"s1-eth3"
+ cookie=0x0, duration=38.121s, table=0, n_packets=1, n_bytes=88, priority=200,udp,in_port="s1-eth1" actions=CONTROLLER:65535
+ cookie=0x0, duration=38.121s, table=0, n_packets=1, n_bytes=88, priority=200,udp,in_port="s1-eth2" actions=CONTROLLER:65535
+

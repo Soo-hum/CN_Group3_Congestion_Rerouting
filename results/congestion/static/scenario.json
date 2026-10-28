@@ -1,0 +1,43 @@
+{
+  "scenario": "congestion",
+  "mode": "static",
+  "t0": 1792732915.1195016,
+  "total_time": 56,
+  "ping_loss_pct": 0.0,
+  "packet_size": 1200,
+  "link_capacity_mbps": 10,
+  "flows": [
+    {
+      "name": "A",
+      "src": "h1",
+      "dst": "h3",
+      "sport": 40001,
+      "dport": 5001,
+      "rate": 6.0,
+      "start": 2,
+      "stop": 52
+    },
+    {
+      "name": "B",
+      "src": "h2",
+      "dst": "h4",
+      "sport": 40002,
+      "dport": 5002,
+      "rate": 6.0,
+      "start": 12,
+      "stop": 52
+    },
+    {
+      "name": "C",
+      "src": "h1",
+      "dst": "h4",
+      "sport": 40003,
+      "dport": 5002,
+      "rate": 6.0,
+      "start": 27,
+      "stop": 47
+    }
+  ],
+  "link_events": [],
+  "rate": null
+}

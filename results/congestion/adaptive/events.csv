@@ -1,0 +1,35 @@
+time,event,link,flow,from_path,to_path,load_mbps,utilization,detail
+1792732977.211,CONTROLLER_START,,,,,,,mode=adaptive threshold=0.80
+1792732978.634,SWITCH_UP,,,,,,,s1
+1792732978.877,SWITCH_UP,,,,,,,s2
+1792732978.965,SWITCH_UP,,,,,,,s3
+1792732979.059,SWITCH_UP,,,,,,,s4
+1792732979.149,SWITCH_UP,,,,,,,s5
+1792732988.764,FLOW_ADDED,,h1:40001->h3:5001,,P1 (via s2),,,
+1792732988.806,FLOW_ADDED,,h3:5001->h1:40001,,P1 (via s2) [reverse],,,
+1792732988.807,APP_SESSION_START,,h1:40001->h3:5001(A),,,,,name=A rate=6.00Mbps
+1792732998.764,FLOW_ADDED,,h2:40002->h4:5002,,P1 (via s2),,,
+1792732998.809,APP_SESSION_START,,h2:40002->h4:5002(B),,,,,name=B rate=6.00Mbps
+1792732998.810,FLOW_ADDED,,h4:5002->h2:40002,,P1 (via s2) [reverse],,,
+1792732999.500,APP_QOS_ALERT,,h1:40001->h3:5001(A),P1 (via s2),,,,delay=85.7ms loss=0.0%
+1792732999.501,APP_QOS_ALERT,,h2:40002->h4:5002(B),P1 (via s2),,,,delay=85.7ms loss=0.0%
+1792733002.232,CONGESTION_DETECTED,s1->s2,,,,12.42,1.24,source=port-stats flows=h1:40001->h3:5001(A);h2:40002->h4:5002(B)
+1792733002.232,REROUTED,s1->s2,h2:40002->h4:5002(B),P1 (via s2),P2 (via s3),12.42,1.24,reason=congestion flow_rate=6.21 new_path_load=0.00
+1792733004.001,APP_QOS_OK,,h2:40002->h4:5002(B),P2 (via s3),,,,delay=0.4ms loss=0.0%
+1792733005.001,APP_QOS_OK,,h1:40001->h3:5001(A),P1 (via s2),,,,delay=0.4ms loss=0.0%
+1792733006.234,CONGESTION_CLEARED,s1->s2,,,,6.92,0.69,
+1792733013.764,FLOW_ADDED,,h1:40003->h4:5002,,P1 (via s2),,,
+1792733013.805,APP_SESSION_START,,h1:40003->h4:5002(C),,,,,name=C rate=6.00Mbps
+1792733013.806,FLOW_ADDED,,h4:5002->h1:40003,,P1 (via s2) [reverse],,,
+1792733014.501,APP_QOS_ALERT,,h1:40001->h3:5001(A),P1 (via s2),,,,delay=86.3ms loss=0.0%
+1792733014.501,APP_QOS_ALERT,,h1:40003->h4:5002(C),P1 (via s2),,,,delay=85.8ms loss=0.0%
+1792733017.241,CONGESTION_DETECTED,s1->s2,,,,12.44,1.24,source=port-stats flows=h1:40001->h3:5001(A);h1:40003->h4:5002(C)
+1792733017.241,REROUTED,s1->s2,h1:40003->h4:5002(C),P1 (via s2),P3 (via s4),12.44,1.24,reason=congestion flow_rate=6.22 new_path_load=0.00
+1792733019.001,APP_QOS_OK,,h1:40003->h4:5002(C),P3 (via s4),,,,delay=0.3ms loss=0.0%
+1792733020.001,APP_QOS_OK,,h1:40001->h3:5001(A),P1 (via s2),,,,delay=0.3ms loss=0.0%
+1792733022.243,CONGESTION_CLEARED,s1->s2,,,,6.22,0.62,
+1792733033.809,APP_SESSION_END,,h1:40003->h4:5002(C),,,,,name=C reason=bye
+1792733038.809,APP_SESSION_END,,h1:40001->h3:5001(A),,,,,name=A reason=bye
+1792733038.812,APP_SESSION_END,,h2:40002->h4:5002(B),,,,,name=B reason=bye
+1792733044.270,FLOW_EXPIRED,,h1:40003->h4:5002(C),P3 (via s4),,,,
+1792733044.271,FLOW_EXPIRED,,h4:5002->h1:40003,P1 (via s2) [reverse],,,,

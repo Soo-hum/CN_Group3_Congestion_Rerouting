@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+*.sock
+logs/
+tests/logs/
+.vscode/
+.idea/

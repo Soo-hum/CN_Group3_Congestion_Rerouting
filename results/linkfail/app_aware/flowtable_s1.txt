@@ -1,0 +1,24 @@
+===== t = 8.0 s (linkfail, app_aware) =====
+ cookie=0x0, duration=6.022s, table=0, n_packets=1721, n_bytes=2137482, idle_timeout=10, priority=300,udp,nw_src=10.0.0.2,nw_dst=10.0.0.4,tp_src=40002,tp_dst=5002 actions=output:"s1-eth3"
+ cookie=0x0, duration=5.980s, table=0, n_packets=1721, n_bytes=2137482, idle_timeout=10, priority=300,udp,nw_src=10.0.0.1,nw_dst=10.0.0.3,tp_src=40001,tp_dst=5001 actions=output:"s1-eth3"
+ cookie=0x0, duration=5.978s, table=0, n_packets=12, n_bytes=1012, idle_timeout=10, priority=300,udp,nw_src=10.0.0.3,nw_dst=10.0.0.1,tp_src=5001,tp_dst=40001 actions=output:"s1-eth1"
+ cookie=0x0, duration=5.977s, table=0, n_packets=12, n_bytes=1012, idle_timeout=10, priority=300,udp,nw_src=10.0.0.4,nw_dst=10.0.0.2,tp_src=5002,tp_dst=40002 actions=output:"s1-eth2"
+ cookie=0x0, duration=13.428s, table=0, n_packets=1, n_bytes=88, priority=200,udp,in_port="s1-eth1" actions=CONTROLLER:65535
+ cookie=0x0, duration=13.428s, table=0, n_packets=1, n_bytes=88, priority=200,udp,in_port="s1-eth2" actions=CONTROLLER:65535
+
+===== t = 16.1 s (linkfail, app_aware) =====
+ cookie=0x0, duration=14.073s, table=0, n_packets=4221, n_bytes=5242482, idle_timeout=10, priority=300,udp,nw_src=10.0.0.2,nw_dst=10.0.0.4,tp_src=40002,tp_dst=5002 actions=output:"s1-eth4"
+ cookie=0x0, duration=14.031s, table=0, n_packets=4221, n_bytes=5242482, idle_timeout=10, priority=300,udp,nw_src=10.0.0.1,nw_dst=10.0.0.3,tp_src=40001,tp_dst=5001 actions=output:"s1-eth5"
+ cookie=0x0, duration=3.983s, table=0, n_packets=7, n_bytes=602, idle_timeout=10, priority=300,udp,nw_src=10.0.0.3,nw_dst=10.0.0.1,tp_src=5001,tp_dst=40001 actions=output:"s1-eth1"
+ cookie=0x0, duration=3.983s, table=0, n_packets=7, n_bytes=602, idle_timeout=10, priority=300,udp,nw_src=10.0.0.4,nw_dst=10.0.0.2,tp_src=5002,tp_dst=40002 actions=output:"s1-eth2"
+ cookie=0x0, duration=21.479s, table=0, n_packets=1, n_bytes=88, priority=200,udp,in_port="s1-eth1" actions=CONTROLLER:65535
+ cookie=0x0, duration=21.479s, table=0, n_packets=1, n_bytes=88, priority=200,udp,in_port="s1-eth2" actions=CONTROLLER:65535
+
+===== t = 30.0 s (linkfail, app_aware) =====
+ cookie=0x0, duration=28.028s, table=0, n_packets=8621, n_bytes=10707282, idle_timeout=10, priority=300,udp,nw_src=10.0.0.2,nw_dst=10.0.0.4,tp_src=40002,tp_dst=5002 actions=output:"s1-eth4"
+ cookie=0x0, duration=27.986s, table=0, n_packets=8621, n_bytes=10707282, idle_timeout=10, priority=300,udp,nw_src=10.0.0.1,nw_dst=10.0.0.3,tp_src=40001,tp_dst=5001 actions=output:"s1-eth5"
+ cookie=0x0, duration=17.938s, table=0, n_packets=36, n_bytes=3096, idle_timeout=10, priority=300,udp,nw_src=10.0.0.3,nw_dst=10.0.0.1,tp_src=5001,tp_dst=40001 actions=output:"s1-eth1"
+ cookie=0x0, duration=17.938s, table=0, n_packets=36, n_bytes=3096, idle_timeout=10, priority=300,udp,nw_src=10.0.0.4,nw_dst=10.0.0.2,tp_src=5002,tp_dst=40002 actions=output:"s1-eth2"
+ cookie=0x0, duration=35.434s, table=0, n_packets=1, n_bytes=88, priority=200,udp,in_port="s1-eth1" actions=CONTROLLER:65535
+ cookie=0x0, duration=35.434s, table=0, n_packets=1, n_bytes=88, priority=200,udp,in_port="s1-eth2" actions=CONTROLLER:65535
+

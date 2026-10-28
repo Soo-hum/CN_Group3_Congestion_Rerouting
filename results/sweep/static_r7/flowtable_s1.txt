@@ -1,0 +1,8 @@
+===== t = 20.0 s (sweep, static) =====
+ cookie=0x0, duration=18.050s, table=0, n_packets=12771, n_bytes=15861582, idle_timeout=10, priority=300,udp,nw_src=10.0.0.1,nw_dst=10.0.0.3,tp_src=40001,tp_dst=5001 actions=output:"s1-eth3"
+ cookie=0x0, duration=18.005s, table=0, n_packets=36, n_bytes=3076, idle_timeout=10, priority=300,udp,nw_src=10.0.0.3,nw_dst=10.0.0.1,tp_src=5001,tp_dst=40001 actions=output:"s1-eth1"
+ cookie=0x0, duration=13.051s, table=0, n_packets=9122, n_bytes=11329524, idle_timeout=10, priority=300,udp,nw_src=10.0.0.2,nw_dst=10.0.0.4,tp_src=40002,tp_dst=5002 actions=output:"s1-eth3"
+ cookie=0x0, duration=13.001s, table=0, n_packets=26, n_bytes=2216, idle_timeout=10, priority=300,udp,nw_src=10.0.0.4,nw_dst=10.0.0.2,tp_src=5002,tp_dst=40002 actions=output:"s1-eth2"
+ cookie=0x0, duration=28.127s, table=0, n_packets=1, n_bytes=88, priority=200,udp,in_port="s1-eth1" actions=CONTROLLER:65535
+ cookie=0x0, duration=28.127s, table=0, n_packets=1, n_bytes=88, priority=200,udp,in_port="s1-eth2" actions=CONTROLLER:65535
+

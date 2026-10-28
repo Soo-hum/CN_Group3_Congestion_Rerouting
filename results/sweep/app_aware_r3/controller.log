@@ -1,0 +1,30 @@
+POX 0.7.0 (gar) / Copyright 2011-2020 James McCauley, et al.
+INFO:congestion:Listening for application QoS reports on /tmp/sdn_app_feedback.sock
+INFO:congestion:Controller started: mode=app_aware threshold=80% of 10 Mbps, poll=1.0s, consecutive=2, cooldown=3.0s, hold=10.0s, app alerts: delay>=30ms or loss>=1.0%, logs=/home/claude/CN_Group3_Congestion_Rerouting/results/sweep/app_aware_r3
+WARNING:version:POX requires one of the following versions of Python: 3.6 3.7 3.8 3.9
+WARNING:version:You're running Python 3.13.
+WARNING:version:If you run into problems, try using a supported version.
+INFO:core:POX 0.7.0 (gar) is up.
+INFO:openflow.of_01:[00-00-00-00-00-01 2] connected
+INFO:congestion:Switch s1 (dpid 1) connected, base rules installed
+INFO:openflow.of_01:[00-00-00-00-00-02 3] connected
+INFO:congestion:Switch s2 (dpid 2) connected, base rules installed
+INFO:openflow.of_01:[00-00-00-00-00-03 4] connected
+INFO:congestion:Switch s3 (dpid 3) connected, base rules installed
+INFO:openflow.of_01:[00-00-00-00-00-04 5] connected
+INFO:congestion:Switch s4 (dpid 4) connected, base rules installed
+INFO:openflow.of_01:[00-00-00-00-00-05 6] connected
+INFO:congestion:Switch s5 (dpid 5) connected, base rules installed
+INFO:congestion:Load s1->core: P1 0.0 Mbps | P2 0.0 Mbps | P3 0.0 Mbps | flows tracked: 0
+INFO:congestion:Load s1->core: P1 0.0 Mbps | P2 0.0 Mbps | P3 0.0 Mbps | flows tracked: 0
+INFO:congestion:New UDP flow h1:40001->h3:5001 on P1 (via s2)
+INFO:congestion:New UDP flow h3:5001->h1:40001 on P1 (via s2) [reverse]
+INFO:congestion:Load s1->core: P1 3.1 Mbps | P2 0.0 Mbps | P3 0.0 Mbps | flows tracked: 2
+INFO:congestion:New UDP flow h2:40002->h4:5002 on P1 (via s2)
+INFO:congestion:New UDP flow h4:5002->h2:40002 on P1 (via s2) [reverse]
+INFO:congestion:Load s1->core: P1 6.2 Mbps | P2 0.0 Mbps | P3 0.0 Mbps | flows tracked: 4
+INFO:congestion:Load s1->core: P1 6.2 Mbps | P2 0.0 Mbps | P3 0.0 Mbps | flows tracked: 4
+INFO:congestion:Load s1->core: P1 6.2 Mbps | P2 0.0 Mbps | P3 0.0 Mbps | flows tracked: 4
+INFO:congestion:Load s1->core: P1 6.2 Mbps | P2 0.0 Mbps | P3 0.0 Mbps | flows tracked: 4
+INFO:congestion:Load s1->core: P1 6.2 Mbps | P2 0.0 Mbps | P3 0.0 Mbps | flows tracked: 4
+INFO:congestion:Load s1->core: P1 0.0 Mbps | P2 0.0 Mbps | P3 0.0 Mbps | flows tracked: 4

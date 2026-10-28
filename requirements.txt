@@ -1,0 +1,4 @@
+# System packages (Ubuntu):  sudo apt install mininet openvswitch-switch python3-matplotlib
+# Controller:                 git clone https://github.com/noxrepo/pox.git ~/pox
+# Python packages (only needed for the graphs in analyze.py):
+matplotlib>=3.5

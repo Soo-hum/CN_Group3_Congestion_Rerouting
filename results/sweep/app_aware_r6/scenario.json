@@ -1,0 +1,33 @@
+{
+  "scenario": "sweep",
+  "mode": "app_aware",
+  "t0": 1792733590.6469426,
+  "total_time": 34,
+  "ping_loss_pct": 0.0,
+  "packet_size": 1200,
+  "link_capacity_mbps": 10,
+  "flows": [
+    {
+      "name": "A",
+      "src": "h1",
+      "dst": "h3",
+      "sport": 40001,
+      "dport": 5001,
+      "rate": 6.0,
+      "start": 2,
+      "stop": 32
+    },
+    {
+      "name": "B",
+      "src": "h2",
+      "dst": "h4",
+      "sport": 40002,
+      "dport": 5002,
+      "rate": 6.0,
+      "start": 7,
+      "stop": 32
+    }
+  ],
+  "link_events": [],
+  "rate": 6.0
+}
