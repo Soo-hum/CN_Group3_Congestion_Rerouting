@@ -20,7 +20,6 @@ PES University, Bengaluru · B.Tech CSE · Section H · **Group 3 · Problem 27*
 | Read the application protocol | [docs/PROTOCOL.md](docs/PROTOCOL.md) |
 | See the test cases and their results | [tests/TEST_REPORT.md](tests/TEST_REPORT.md) |
 | See all measured results | [results/comparison.md](results/comparison.md) |
-| Prepare the demo / viva | Demo 1: [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md) · **Demo 2: [docs/DEMO2_SCRIPT.md](docs/DEMO2_SCRIPT.md)** · [docs/VIVA.md](docs/VIVA.md) |
 
 ---
 
@@ -372,12 +371,12 @@ sudo python3 tests/run_tests.py              # about 5 min
 | D1 | TCP/UDP Socket Implementation (4) | §3, `app/`, [PROTOCOL.md](docs/PROTOCOL.md); TC03, TC04, TC06; 14 protocol unit tests |
 | D1 | Mininet + SDN Implementation (4) | §4, `topology.py`, `controller/`; TC01, TC02, TC07 |
 | D1 | Socket–SDN Integration (3) | §5: per-session flow rules, application QoS feedback channel; TC07, TC11 |
-| D1 | Initial Testing & Demo (2) | §9, [TEST_REPORT.md](tests/TEST_REPORT.md), [DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md) |
+| D1 | Initial Testing & Demo (2) | §9, [TEST_REPORT.md](tests/TEST_REPORT.md) |
 | D2 | Complete Application Functionality (4) | Up to 12 concurrent flows on 2 servers, full session life cycle, sequence numbers and timestamps per packet (client, server, trace, on the wire); TC03–TC06, TC13, TC14 |
 | D2 | Dynamic SDN Functionality (6) | §6: monitoring, threshold detection, rerouting, load balancing of many flows, link-failure recovery; TC08, TC10, TC14 |
 | D2 | Challenging Scenario / Robustness (4) | §7: congestion, link failure, many flows, server overload, service failure, bad input |
 | D2 | Performance Evaluation & Comparison (5) | §8: 10 metrics, 4 conditions (congestion, link failure, load sweep, increasing flows), static baseline vs 2 SDN modes, [comparison.md](results/comparison.md) |
-| D2 | Documentation, Final Demo & Viva (6) | [Project report](docs/PROJECT_REPORT.md), this README, `docs/` ([DEMO2_SCRIPT.md](docs/DEMO2_SCRIPT.md)), reproducible scripts, [VIVA.md](docs/VIVA.md) |
+| D2 | Documentation, Final Demo & Viva (6) | [Project report](docs/PROJECT_REPORT.md), this README, `docs/`, reproducible scripts |
 
 ## 12. Repository structure
 
@@ -410,7 +409,7 @@ CN_Group3_Congestion_Rerouting/
 │   ├── run_tests.py             14 Mininet test cases
 │   └── TEST_REPORT.md           latest test results
 ├── results/                     measured results (comparison.md, *.png, raw logs)
-└── docs/                        PROJECT_REPORT (.md + .pdf), INSTALL_AND_RUN, PROTOCOL, DEMO_SCRIPT (D1), DEMO2_SCRIPT (D2), VIVA
+└── docs/                        PROJECT_REPORT (.md + .pdf), INSTALL_AND_RUN, PROTOCOL
 ```
 
 ### Publishing to GitHub

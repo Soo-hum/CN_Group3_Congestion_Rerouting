@@ -114,7 +114,7 @@ Ports on s1: `1` = h1, `2` = h2, `3` = s2 (P1), `4` = s3 (P2), `5` = s4 (P3). De
 
 When you `exit` Mininet while the controller is still running, the controller logs `LINK DOWN` for every link. That is just the network being torn down.
 
-**Demo 2 additions** (packet view, many flows, link failure under load) are in [DEMO2_SCRIPT.md](DEMO2_SCRIPT.md). The short version:
+**More to try** (packet view, many flows, link failure under load):
 ```
 mininet> h4 python3 app/udp_server.py --port 5003 --out-dir /tmp/demo --show-packets > /tmp/pkts.log 2>&1 &
 mininet> h1 python3 app/udp_client.py --server 10.0.0.4 --port 5003 --rate 0.02 --duration 3 --name P --show-packets

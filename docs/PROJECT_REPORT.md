@@ -649,8 +649,7 @@ CN_Group3_Congestion_Rerouting/
 ├── demo/flows8.mn               Mininet script: 2 servers + 8 flows
 ├── tests/                       unit tests, 14 Mininet test cases, TEST_REPORT.md
 ├── results/                     comparison.md, graphs, raw logs of every run
-└── docs/                        PROJECT_REPORT (this report), INSTALL_AND_RUN, PROTOCOL,
-                                 DEMO_SCRIPT, DEMO2_SCRIPT, VIVA
+└── docs/                        PROJECT_REPORT (this report), INSTALL_AND_RUN, PROTOCOL
 ```
 
 ## Appendix B: Rubric mapping
