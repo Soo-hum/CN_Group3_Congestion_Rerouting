@@ -33,6 +33,16 @@ if ! python3 -c "import socket; s=socket.socket(); s.setsockopt(socket.SOL_SOCKE
   exit 1
 fi
 
+# The UDP servers report to the controller through a UNIX socket file. If an earlier
+# "sudo" run (tests, experiments) created it, it belongs to root and this controller,
+# running as you, cannot replace it - remove it first.
+SOCK="$(cd "$PROJECT" && python3 -c 'import netconfig; print(netconfig.FEEDBACK_SOCKET)' 2>/dev/null)"
+SOCK="${SOCK:-/tmp/sdn_app_feedback.sock}"
+if [ -e "$SOCK" ] && [ ! -O "$SOCK" ] && [ "$(id -u)" -ne 0 ]; then
+  echo "Removing $SOCK left behind by an earlier sudo run (sudo may ask for your password)"
+  sudo rm -f "$SOCK" || echo "Could not remove it: the application feedback channel will be off"
+fi
+
 mkdir -p "$LOG_DIR"
 echo "Starting POX controller: mode=$MODE, logs -> $LOG_DIR  (Ctrl+C to stop)"
 cd "$POX_DIR"

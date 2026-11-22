@@ -1,7 +1,7 @@
 {
   "scenario": "linkfail",
   "mode": "app_aware",
-  "t0": 1792733185.3366764,
+  "t0": 1794932795.8410413,
   "total_time": 42,
   "ping_loss_pct": 0.0,
   "packet_size": 1200,
@@ -34,15 +34,16 @@
       "a": "s1",
       "b": "s2",
       "state": "down",
-      "actual_t": 12.02999234199524
+      "actual_t": 12.035236358642578
     },
     {
       "t": 24,
       "a": "s1",
       "b": "s2",
       "state": "up",
-      "actual_t": 24.085489511489868
+      "actual_t": 24.093385219573975
     }
   ],
-  "rate": null
+  "rate": null,
+  "n_flows": 2
 }

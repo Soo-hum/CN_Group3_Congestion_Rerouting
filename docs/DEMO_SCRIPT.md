@@ -1,4 +1,6 @@
-# Final demo script (about 12 minutes)
+# Demo 1 script (D1, about 12 minutes)
+
+For the final demo (D2: link failure, many flows, sequence numbers and timestamps, performance comparison) see **[DEMO2_SCRIPT.md](DEMO2_SCRIPT.md)**.
 
 Suggested split. Change the names as you like, but **every member should be able to run the demo and answer any viva question** (see `VIVA.md`). The rubric marks individual understanding.
 
@@ -14,7 +16,7 @@ Suggested split. Change the names as you like, but **every member should be able
 cd ~/CN_Group3_Congestion_Rerouting
 sudo mn -c                                   # clean up anything left over
 sudo pkill -f pox.py                         # no old controller on port 6653
-python3 -m unittest discover -s tests        # 28 unit tests, should say OK
+python3 -m unittest discover -s tests        # 39 unit tests, should say OK
 ```
 Open these files in the image viewer or browser so they are ready to show: `results/congestion_throughput.png`, `results/congestion_paths.png`, `results/linkfail_throughput.png`, `results/sweep.png`, `results/comparison.md`, `tests/TEST_REPORT.md`.
 
@@ -43,7 +45,7 @@ sudo python3 topology.py
 ```
 mininet> net
 mininet> pingall
-mininet> sh ovs-ofctl dump-flows s1
+mininet> sh ovs-ofctl dump-flows --no-stats s1
 ```
 Explain the base rules: priority 100 default routes, 200 for ARP and new UDP flows going to the controller, 0 to drop everything else (no flooding in a looped topology).
 
@@ -52,7 +54,7 @@ Start the servers, then the first client:
 mininet> h3 python3 app/udp_server.py --port 5001 --out-dir /tmp/demo > /tmp/demo_h3.log 2>&1 &
 mininet> h4 python3 app/udp_server.py --port 5002 --out-dir /tmp/demo > /tmp/demo_h4.log 2>&1 &
 mininet> h1 python3 app/udp_client.py --server 10.0.0.3 --port 5001 --rate 6 --duration 90 --name A --sport 40001 > /tmp/demo_A.log 2>&1 &
-mininet> sh ovs-ofctl dump-flows s1 udp
+mininet> sh ovs-ofctl dump-flows --no-stats s1 udp
 ```
 Point at the new `priority=300 ... tp_src=40001 ... actions=output:3` rule (some versions print `output:"s1-eth3"`). Port 3 leads to s2, so this is path P1.
 
@@ -66,7 +68,7 @@ WARNING:congestion:CONGESTION on s1->s2 reported by application (... delay 34 ms
 WARNING:congestion:REROUTE h2:40002->h4:5002(B) (6.21 Mbps): P1 (via s2) -> P2 (via s3)
 ```
 ```
-mininet> sh ovs-ofctl dump-flows s1 udp
+mininet> sh ovs-ofctl dump-flows --no-stats s1 udp
 ```
 Flow B now goes out `output:4`, which leads to s3 (P2). That is the rerouting.
 
@@ -76,7 +78,7 @@ mininet> link s1 s3 down
 ```
 Terminal 1 shows `LINK DOWN s1-s3` and `REROUTE ... B ... P2 -> P3 [link-failure ...]`.
 ```
-mininet> sh ovs-ofctl dump-flows s1 udp
+mininet> sh ovs-ofctl dump-flows --no-stats s1 udp
 mininet> link s1 s3 up
 mininet> sh tail -n 3 /tmp/demo_A.log /tmp/demo_B.log
 mininet> exit
@@ -85,8 +87,8 @@ mininet> exit
 
 ## Part 3 – Tests and results (Member 3)
 
-1. Open `tests/TEST_REPORT.md`: 12 automated test cases (connectivity, flow rules, sockets, concurrency, overload, error handling, congestion, static baseline, link failure, feedback channel, server restart). Say which rubric area each one covers.
-2. Open `results/congestion_throughput.png`. Static keeps losing packets (32% overall). Adaptive detects after 3.5 s and recovers within about 5 s. App-aware reacts after 0.5 s with 0% loss.
+1. Open `tests/TEST_REPORT.md`: 14 automated test cases (connectivity, flow rules, sockets, concurrency, overload, error handling, congestion, static baseline, link failure, feedback channel, server restart, packet trace, 8 flows). Say which rubric area each one covers.
+2. Open `results/congestion_throughput.png`. Static keeps losing packets (30% overall). Adaptive detects after 2.6 s and recovers within about 4 s. App-aware reacts after 0.7 s with 0% loss.
 3. Open `results/congestion_paths.png`. Static has P1 at 100% while P2 and P3 sit at 0. The SDN modes spread the load. The second time, the controller picks **P3, because P2 already carries a flow**.
 4. Open `results/linkfail_throughput.png`. Static loses everything for 12 s; app-aware moves both flows in milliseconds.
 5. Open `results/sweep.png`. As the load grows from 62% to 145% of capacity, static loss and delay climb sharply while SDN rerouting stays near 0.

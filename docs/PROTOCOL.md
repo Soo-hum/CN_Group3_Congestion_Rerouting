@@ -40,7 +40,7 @@ Packing and parsing live in `app/protocol.py`. `tests/test_protocol.py` checks e
    | <-------------------------- SUMMARY -- |  final loss = sent - received
 ```
 
-UDP is unreliable, so the **control messages are retried**. HELLO is sent up to 5 times, waiting 1 s each time, and BYE up to 5 times. The server treats a repeated HELLO or BYE as a duplicate: it re-sends the same HELLO_ACK or SUMMARY instead of creating a second session.
+UDP is unreliable, so the **control messages are retried**. HELLO and BYE are each sent up to 5 times. The wait for an answer grows: 1 s, 2 s, then 4 s (backoff, like TCP's SYN retries), because on a congested path the reply can be delayed by a full queue (about 1 s). If the kernel reports "port unreachable" the server is simply not there, so the client keeps the short 1 s wait. The server treats a repeated HELLO or BYE as a duplicate: it re-sends the same HELLO_ACK or SUMMARY instead of creating a second session.
 
 ## 3. Concurrency
 
@@ -67,7 +67,37 @@ One server socket serves many clients at once. In the experiments the h4 server 
 | Controller feedback socket missing | The server prints one warning and keeps working without it |
 | No SUMMARY after BYE retries | The client exits with code **4** but still prints what it sent |
 
-## 5. Feedback channel to the SDN controller (Socket–SDN integration)
+## 5. Sequence numbers and timestamps
+
+Every DATA packet carries two fields that make each packet traceable:
+
+- **Sequence number** (bytes 8–11, `u32`): 0, 1, 2, … for the DATA packets of one session.
+- **Timestamp** (bytes 12–19, `float64`): `time.time()` of the sender at the moment the packet is built. The receiver takes its own `time.time()` when the packet arrives; **one-way delay = receive time − timestamp**. This is exact inside Mininet because all hosts share one clock (between real machines the clocks would need NTP/PTP synchronisation).
+
+The receiver (`SeqTracker` in `app/protocol.py`) compares each sequence number with the highest one seen so far:
+
+| Arriving seq | Status | Meaning |
+|---|---|---|
+| highest + 1 | `ok` | next packet in order |
+| higher than highest + 1 | `gap` | the packets in between are missing: lost (unless they arrive later) |
+| lower, and it was missing | `late` | out of order: it took a different, slower path or queue |
+| lower, already received | `dup` | duplicate |
+
+Loss = packets missing at the end = (highest seq + 1) − packets received. Example: after a link failure with static routing the sequence numbers jump from about 3100 to about 6900: those ~3750 packets were dropped on the broken link.
+
+How to see them:
+
+| Where | Command | Shows |
+|---|---|---|
+| Sender | `udp_client.py ... --show-packets [N]` | `sent DATA seq=152 timestamp=21:40:05.123456` for every Nth packet |
+| Receiver, live | `udp_server.py ... --show-packets [N]` | `seq=152 sent=21:40:05.123456 recv=21:40:05.124001 delay=0.55 ms`, plus every `GAP` / `LATE` / `DUPLICATE` |
+| Receiver, file | `udp_server.py ... --trace` | `trace_<flow>.csv`: recv_time, seq, send_time, delay_ms, status, missing_before (one row per packet) |
+| Trace summary | `python3 tools/trace_summary.py trace_A.csv` (or `--brief trace_*.csv`) | first packets, every gap with its time, out-of-order count, delay percentiles |
+| On the wire | `h3 python3 tools/packet_sniffer.py --port 5001` | captured with a **raw socket** (`AF_PACKET`, Ethernet frames): IP/UDP headers parsed by hand, then our 20-byte header; `--write x.pcap` for Wireshark |
+
+The sniffer proves the fields are really in the packets, not only in the program's memory: it reads the bytes from the interface, so it also shows the REPORT messages travelling back and the HELLO / HELLO_ACK handshake.
+
+## 6. Feedback channel to the SDN controller (Socket–SDN integration)
 
 The server also sends one-line JSON messages to the controller over a **UNIX datagram socket** (`/tmp/sdn_app_feedback.sock`, set in `netconfig.py`). Mininet hosts have their own network stack but share the file system with the controller, so the controller can be reached through this file path.
 
@@ -82,15 +112,21 @@ The server also sends one-line JSON messages to the controller over a **UNIX dat
 1. **Demand.** From `session_start` it knows a new flow's rate before switch counters can measure it. This lets it pick the right flow to move.
 2. **Early warning.** A `qos` report with delay ≥ 30 ms or loss ≥ 1% while a link on that flow's path is ≥ 80% loaded counts as congestion immediately. The controller does not wait for two statistics polls.
 
-## 6. Command-line reference
+## 7. Command-line reference
 
 ```
 python3 app/udp_server.py --port 5001 [--out-dir DIR] [--interval 0.5] [--max-sessions 8]
                           [--session-timeout 15] [--duration 0] [--feedback /tmp/sdn_app_feedback.sock|none]
+                          [--show-packets [N]] [--trace]
 
 python3 app/udp_client.py --server 10.0.0.3 --port 5001 [--rate 6] [--size 1200] [--duration 30]
                           [--name A] [--sport 40001] [--start-at EPOCH] [--retries 5] [--timeout 1]
-                          [--print-every 2] [--quiet]
+                          [--print-every 2] [--quiet] [--show-packets [N]]
+
+python3 tools/packet_sniffer.py [--iface h3-eth0] [--port 5001] [--count 20] [--duration 30]
+                                [--every N] [--write FILE.pcap] | --read FILE.pcap
+python3 tools/trace_summary.py [--brief] [--head 8] [--gaps 15] trace_<flow>.csv ...
+python3 tools/show_paths.py
 ```
 
 Client exit codes: `0` ok, `2` server unreachable, `3` rejected, `4` no summary.

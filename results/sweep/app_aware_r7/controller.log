@@ -22,12 +22,12 @@ INFO:congestion:New UDP flow h3:5001->h1:40001 on P1 (via s2) [reverse]
 INFO:congestion:Load s1->core: P1 7.2 Mbps | P2 0.0 Mbps | P3 0.0 Mbps | flows tracked: 2
 INFO:congestion:New UDP flow h2:40002->h4:5002 on P1 (via s2)
 INFO:congestion:New UDP flow h4:5002->h2:40002 on P1 (via s2) [reverse]
-WARNING:congestion:CONGESTION on s1->s2 reported by application (h2:40002->h4:5002(B): delay 68 ms, loss 0.0%), link load 14.47 Mbps
+WARNING:congestion:CONGESTION on s1->s2 reported by application (h2:40002->h4:5002(B): delay 49 ms, loss 0.0%), link load 14.51 Mbps
 WARNING:congestion:REROUTE h2:40002->h4:5002(B) (7.25 Mbps): P1 (via s2) -> P2 (via s3)  [congestion on s1->s2]
-INFO:congestion:Load s1->core: P1 7.7 Mbps | P2 7.2 Mbps | P3 0.0 Mbps | flows tracked: 4
-INFO:congestion:Load s1->core: P1 7.2 Mbps | P2 7.2 Mbps | P3 0.0 Mbps | flows tracked: 4
-INFO:congestion:Load s1->core: P1 7.2 Mbps | P2 7.3 Mbps | P3 0.0 Mbps | flows tracked: 4
 INFO:congestion:Load s1->core: P1 7.2 Mbps | P2 7.2 Mbps | P3 0.0 Mbps | flows tracked: 4
 INFO:congestion:Load s1->core: P1 7.2 Mbps | P2 7.2 Mbps | P3 0.0 Mbps | flows tracked: 4
-INFO:congestion:Congestion cleared on s1->s2 (0.22 Mbps)
+INFO:congestion:Load s1->core: P1 7.3 Mbps | P2 7.2 Mbps | P3 0.0 Mbps | flows tracked: 4
+INFO:congestion:Load s1->core: P1 7.2 Mbps | P2 7.2 Mbps | P3 0.0 Mbps | flows tracked: 4
+INFO:congestion:Load s1->core: P1 7.3 Mbps | P2 7.2 Mbps | P3 0.0 Mbps | flows tracked: 4
+INFO:congestion:Congestion cleared on s1->s2 (4.72 Mbps)
 INFO:congestion:Load s1->core: P1 0.0 Mbps | P2 0.0 Mbps | P3 0.0 Mbps | flows tracked: 4

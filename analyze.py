@@ -9,14 +9,19 @@ Reads                                   Writes (results/)
   results/congestion/<mode>/             comparison.md               all tables
   results/linkfail/<mode>/               congestion_throughput.png   per-flow throughput
   results/sweep/<mode>_r<rate>/          congestion_paths.png        load on each path
-                                         congestion_summary.png      loss + delay per flow
+  results/flows/<mode>_n<flows>/         congestion_summary.png      loss + delay per flow
                                          linkfail_throughput.png     link failure
+                                         linkfail_packets.png        sequence numbers per packet
                                          sweep.png                   loss/delay vs. load
+                                         flows.png                   increasing number of flows
 
 Metric definitions
   throughput     UDP payload Mbps received by the server (0.5 s intervals)
   loss %         lost / sent, lost = gaps in sequence numbers
   delay          one-way delay (receive time - send time; Mininet hosts share a clock)
+  gap            a jump in the sequence numbers = packets that never arrived
+  silence        longest time between two received packets of a flow
+  fairness       Jain's index of (throughput / requested rate) over all flows, 1 = fair
   detection      start of the problem -> controller logs CONGESTION_DETECTED
   reroute        start of the problem -> controller logs REROUTED
   recovery       start of the problem -> end of the first 0.5 s interval after which
@@ -73,6 +78,13 @@ def load_run(d):
             run["events"].append(r)
     for r in read_csv(os.path.join(d, "link_stats.csv")):
         run["links"].setdefault(r["link"], []).append((float(r["time"]) - t0, float(r["mbps"])))
+    run["traces"] = {}
+    for f in meta["flows"]:
+        rows = read_csv(os.path.join(d, "trace_%s.csv" % f["name"]))
+        if rows:
+            run["traces"][f["name"]] = [(float(r["recv_time"]) - t0, int(r["seq"]),
+                                         float(r["delay_ms"]), r["status"],
+                                         int(r["missing_before"])) for r in rows]
     return run
 
 
@@ -173,6 +185,36 @@ def congestion_events(run):
     return out
 
 
+def trace_metrics(tr):
+    """Packet-level metrics of one flow from its per-packet trace."""
+    gaps = [r for r in tr if r[3] == "gap"]
+    late = sum(1 for r in tr if r[3] == "late")
+    times = [r[0] for r in tr]
+    silence = max((b - a for a, b in zip(times, times[1:])), default=0.0)
+    d = sorted(r[2] for r in tr)
+    pct = lambda q: d[int(q * (len(d) - 1))] if d else 0.0          # noqa: E731
+    return {"received": len(tr), "gaps": len(gaps),
+            "missing": sum(r[4] for r in gaps) - late,
+            "largest_gap": max((r[4] for r in gaps), default=0), "silence_ms": 1000 * silence,
+            "late": late, "dups": sum(1 for r in tr if r[3] == "dup"),
+            "p50": pct(0.5), "p95": pct(0.95), "max": d[-1] if d else 0.0}
+
+
+def final_paths(run):
+    """Path of every flow at the end of the run: P1 (default) + REROUTED events."""
+    paths = {f["name"]: "P1" for f in run["meta"]["flows"]}
+    for e in run["events"]:
+        if e["event"] == "REROUTED" and "(" in e["flow"]:
+            name = flow_letter(run, e["flow"])
+            if name in paths:
+                paths[name] = e["to_path"].split()[0]
+    return paths
+
+
+def jain(xs):
+    return sum(xs) ** 2 / (len(xs) * sum(x * x for x in xs)) if xs and any(xs) else 0.0
+
+
 def fmt(v, unit=" s", nd=1):
     return "-" if v is None else "%.*f%s" % (nd, v, unit)
 
@@ -192,6 +234,10 @@ def section_congestion(runs, lines):
     for f in any_run["meta"]["flows"]:
         for m in runs:
             x = fms[m][f["name"]]
+            if x["pkts"] == 0:                       # the session never started
+                lines.append("| %s | %s | 0 of %.0f (could not connect) | - | - | - | - |"
+                             % (f["name"], MODE_LABEL[m], x["rate"]))
+                continue
             lines.append("| %s | %s | %.2f of %.0f | %.2f %% | %.1f | %.1f | %.2f |"
                          % (f["name"], MODE_LABEL[m], x["avg_mbps"], x["rate"], x["loss_pct"],
                             x["avg_delay_ms"], x["max_delay_ms"], x["avg_jitter_ms"]))
@@ -245,10 +291,79 @@ def section_linkfail(runs, lines):
     lines.append("")
 
 
+def section_packets(link, lines):
+    runs = {m: r for m, r in link.items() if r["traces"]}
+    if not runs:
+        return
+    any_run = next(iter(runs.values()))
+    down = next(e for e in any_run["meta"]["link_events"] if e["state"] == "down")
+    lines += ["## 3. Packet-level view of the link failure (sequence numbers and timestamps)", "",
+              "Every DATA packet carries a sequence number and the sender's timestamp. The server "
+              "writes one row per packet (`trace_<flow>.csv`); a jump in the sequence numbers is "
+              "a gap = lost packets. Silence = longest time without any packet of the flow. "
+              "Inspect a trace with `python3 tools/trace_summary.py results/linkfail/<mode>/"
+              "trace_A.csv`.", "",
+              "| Mode | Flow | Packets received | Gaps | Packets lost | Largest gap (packets) | "
+              "Longest silence | Out of order | Delay p50 / p95 / max (ms) |",
+              "|---|---|---|---|---|---|---|---|---|"]
+    for m, run in runs.items():
+        for name, tr in sorted(run["traces"].items()):
+            x = trace_metrics(tr)
+            sil = "%.1f s" % (x["silence_ms"] / 1000) if x["silence_ms"] >= 1000 \
+                else "%.0f ms" % x["silence_ms"]
+            lines.append("| %s | %s | %d | %d | %d | %d | %s | %d | %.2f / %.2f / %.1f |" % (
+                MODE_LABEL[m], name, x["received"], x["gaps"], x["missing"], x["largest_gap"],
+                sil, x["late"], x["p50"], x["p95"], x["max"]))
+    lines += ["", "With static routing the sequence numbers stop for the whole failure (t=%d s) "
+              "and jump when the link is repaired; with the SDN controller only a few packets "
+              "around t=%d s are missing." % (down["t"], down["t"]), ""]
+
+
+def section_flows(flowruns, lines):
+    if not flowruns:
+        return []
+    any_run = next(iter(flowruns.values()))
+    rate = any_run["meta"]["rate"]
+    cap = any_run["meta"]["link_capacity_mbps"]
+    lines += ["## 5. Increasing number of flows (%g Mbps each; P1 = %g Mbps, 3 paths = %g Mbps)"
+              % (rate, cap, 3 * cap), "",
+              "N flows join one by one (every 2 s) on the default path P1 and all run until 20 s "
+              "after the last one joined. Throughput and fairness are measured while all flows "
+              "run (from 6 s after the last flow joined); loss and delay over the whole run. "
+              "Fairness = Jain's index of throughput / requested rate (1 = every flow gets what "
+              "it asked for).", "",
+              "| Flows | Offered (Mbps) | Mode | Delivered (Mbps) | Loss | Avg delay (ms) | "
+              "Max delay (ms) | Fairness | Reroutes | Flows on P1 / P2 / P3 |",
+              "|---|---|---|---|---|---|---|---|---|---|"]
+    rows = []
+    for (m, n), run in sorted(flowruns.items(), key=lambda k: (k[0][1], MODES.index(k[0][0]))):
+        fl = run["meta"]["flows"]
+        t_all = max(f["start"] for f in fl) + 6
+        t_end = min(f["stop"] for f in fl) - 0.5
+        steady = flow_metrics(run, t_all, t_end)
+        whole = flow_metrics(run)
+        delivered = sum(x["avg_mbps"] for x in steady.values())
+        _, _, loss = totals(whole)
+        pk = sum(x["pkts"] for x in whole.values()) or 1
+        delay = sum(x["avg_delay_ms"] * x["pkts"] for x in whole.values()) / pk
+        maxd = max(x["max_delay_ms"] for x in whole.values())
+        fair = jain([steady[f["name"]]["avg_mbps"] / f["rate"] for f in fl])
+        nre = sum(1 for e in run["events"] if e["event"] == "REROUTED")
+        paths = final_paths(run)
+        per = [sum(1 for p in paths.values() if p == q) for q in ("P1", "P2", "P3")]
+        offered = sum(f["rate"] for f in fl)
+        rows.append({"mode": m, "n": n, "offered": offered, "delivered": delivered,
+                     "loss": loss, "delay": delay, "maxd": maxd, "fair": fair, "per": per})
+        lines.append("| %d | %.0f | %s | %.2f | %.2f %% | %.1f | %.0f | %.3f | %d | %d / %d / %d |"
+                     % (n, offered, MODE_LABEL[m], delivered, loss, delay, maxd, fair, nre, *per))
+    lines.append("")
+    return rows
+
+
 def section_sweep(sweep, lines):
     if not sweep:
         return []
-    lines += ["## 3. Load sweep (2 flows on P1; offered load = both flows together)", "",
+    lines += ["## 4. Load sweep (2 flows on P1; offered load = both flows together)", "",
               "| Per-flow rate | Offered load on P1 | Mode | Loss | Avg delay (ms) | "
               "Avg throughput per flow (Mbps) | Reroutes |", "|---|---|---|---|---|---|---|"]
     rows = []
@@ -400,6 +515,135 @@ def plot_linkfail(link, plt):
     plt.close(fig)
 
 
+def plot_packets(link, plt):
+    runs = {m: r for m, r in link.items() if r["traces"].get("A")}
+    if not runs:
+        return
+    any_run = next(iter(runs.values()))
+    total = any_run["meta"]["total_time"]
+    ev = any_run["meta"]["link_events"]
+    t_down = next(e["t"] for e in ev if e["state"] == "down")
+    t_up = next(e["t"] for e in ev if e["state"] == "up")
+    fig, axes = plt.subplots(2, 2, figsize=(11, 7.2))
+    panels = [(axes[0, 0], "static"), (axes[0, 1], "app_aware")]
+    for ax, m in panels:
+        if m not in runs:
+            ax.set_visible(False)
+            continue
+        tr = runs[m]["traces"]["A"]
+        ax.axvspan(t_down, t_up, color="#f3e1e1", linewidth=0)
+        ax.plot([r[0] for r in tr], [r[1] for r in tr], ".", markersize=1.5,
+                color=MODE_COLORS[m])
+        x = trace_metrics(tr)
+        big = max((r for r in tr if r[3] == "gap"), key=lambda r: r[4], default=None)
+        if big is not None:
+            ax.annotate("seq %d-%d never arrived\n(%d packets, %.1f s without packets)"
+                        % (big[1] - big[4], big[1] - 1, big[4], x["silence_ms"] / 1000)
+                        if x["silence_ms"] >= 1000 else
+                        "only %d packets lost\n(%.0f ms without packets)"
+                        % (x["missing"], x["silence_ms"]),
+                        xy=(big[0], big[1]), xytext=(0.03, 0.97), textcoords="axes fraction",
+                        va="top", fontsize=8.5, color=INK,
+                        arrowprops=dict(arrowstyle="-", color=INK2, linewidth=0.8))
+        ax.set_xlim(0, total)
+        ax.set_xlabel("Receive time (s)  -  red band: link s1-s2 down")
+        ax.set_ylabel("Sequence number")
+        ax.set_title("%s: sequence numbers of flow A" % MODE_LABEL[m], loc="left")
+        style(ax)
+    # zoom on the moment of the failure for the SDN mode
+    ax = axes[1, 0]
+    m = "app_aware" if "app_aware" in runs else next(iter(runs))
+    gap = max((r for r in runs[m]["traces"]["A"] if r[3] == "gap" and r[0] > t_down - 1),
+              key=lambda r: r[4], default=None)
+    lo = (gap[0] - 0.25) if gap else t_down - 0.4
+    tr = [r for r in runs[m]["traces"]["A"] if lo <= r[0] <= lo + 0.5]
+    ax.plot([r[0] for r in tr], [r[1] for r in tr], "o", markersize=2.6, color=MODE_COLORS[m])
+    if gap:
+        ax.annotate("gap: seq %d-%d lost\nthen the flow continues on the new path"
+                    % (gap[1] - gap[4], gap[1] - 1), xy=(gap[0], gap[1]),
+                    xytext=(0.03, 0.97), textcoords="axes fraction", va="top", fontsize=8.5,
+                    arrowprops=dict(arrowstyle="-", color=INK2, linewidth=0.8))
+    ax.set_xlabel("Receive time (s)")
+    ax.set_ylabel("Sequence number")
+    ax.set_title("%s: zoom on the failure (0.5 s)" % MODE_LABEL[m], loc="left")
+    style(ax)
+    ax = axes[1, 1]
+    top = 1.0
+    for m, run in runs.items():
+        tr = run["traces"]["A"]
+        ax.plot([r[0] for r in tr], [r[2] for r in tr], ".", markersize=1.2,
+                color=MODE_COLORS[m], label=MODE_LABEL[m])
+        d = sorted(r[2] for r in tr)
+        top = max(top, d[int(0.999 * (len(d) - 1))])
+    ax.axvspan(t_down, t_up, color="#f3e1e1", linewidth=0)
+    ax.set_ylim(0, top * 1.4)
+    ax.set_xlim(0, total)
+    ax.set_xlabel("Receive time (s)")
+    ax.set_ylabel("ms")
+    ax.set_title("One-way delay of every packet = receive time - timestamp", loc="left")
+    ax.legend(frameon=False, fontsize=8.5, markerscale=6, loc="upper right")
+    style(ax)
+    fig.suptitle("Link failure, packet by packet: sequence numbers and timestamps (flow A, 3 Mbps)",
+                 x=0.01, ha="left", fontweight="bold")
+    fig.tight_layout(rect=(0, 0, 1, 0.95))
+    fig.savefig(os.path.join(RESULTS, "linkfail_packets.png"), dpi=150)
+    plt.close(fig)
+
+
+def plot_flows(rows, plt):
+    fig, axes = plt.subplots(2, 2, figsize=(11, 7.2))
+    ns = sorted({r["n"] for r in rows})
+    cap = 10.0
+    ax = axes[0, 0]
+    offered = sorted({(r["n"], r["offered"]) for r in rows})
+    ax.plot([o[0] for o in offered], [o[1] for o in offered], color=INK2, linewidth=1.2,
+            linestyle=(0, (4, 3)), label="Offered (all flows)")
+    for c, text in ((cap, "capacity of one path (%g Mbps)" % cap),
+                    (3 * cap, "capacity of all 3 paths (%g Mbps)" % (3 * cap))):
+        ax.axhline(c, color=GRID, linewidth=1.2)
+        ax.text(ns[-1], c + 0.5, text, fontsize=8, color=INK2, ha="right")
+    for key, title, axx, log in (("delivered", "Delivered throughput, all flows (Mbps)", axes[0, 0], False),
+                                 ("loss", "Packet loss (%)", axes[0, 1], False),
+                                 ("delay", "Average one-way delay (ms, log scale)", axes[1, 0], True)):
+        for m in MODES:
+            pts = sorted((r["n"], r[key]) for r in rows if r["mode"] == m)
+            if not pts:
+                continue
+            axx.plot([p[0] for p in pts], [max(p[1], 0.05) if log else p[1] for p in pts],
+                     linewidth=2, marker="o", markersize=6, color=MODE_COLORS[m],
+                     label=MODE_LABEL[m])
+        if log:
+            axx.set_yscale("log")
+            axx.yaxis.set_major_formatter(plt.FuncFormatter(lambda v, _: "%g" % v))
+            axx.yaxis.set_minor_formatter(plt.NullFormatter())
+        else:
+            axx.set_ylim(bottom=0, top=max(1.0, axx.get_ylim()[1]))
+        axx.set_xticks(ns)
+        axx.set_xlabel("Number of flows (%g Mbps each)" % (rows[0]["offered"] / rows[0]["n"]))
+        axx.set_title(title, loc="left")
+        style(axx)
+    axes[0, 0].legend(frameon=False, fontsize=8.5, loc="upper left")
+    ax = axes[1, 1]
+    sdn = sorted((r for r in rows if r["mode"] == "app_aware"), key=lambda r: r["n"])
+    bottom = [0] * len(sdn)
+    xs = list(range(len(sdn)))
+    for i, (pname, col) in enumerate(PATH_COLORS.items()):
+        vals = [r["per"][i] for r in sdn]
+        ax.bar(xs, vals, bottom=bottom, width=0.6, color=col, label=pname)
+        bottom = [b + v for b, v in zip(bottom, vals)]
+    ax.set_xticks(xs)
+    ax.set_xticklabels([str(r["n"]) for r in sdn])
+    ax.set_xlabel("Number of flows")
+    ax.set_title("App-aware: flows on each path at the end (static: all on P1)", loc="left")
+    ax.legend(frameon=False, fontsize=8.5, loc="upper left")
+    style(ax)
+    fig.suptitle("Increasing the number of flows: static routing vs. SDN rerouting",
+                 x=0.01, ha="left", fontweight="bold")
+    fig.tight_layout(rect=(0, 0, 1, 0.95))
+    fig.savefig(os.path.join(RESULTS, "flows.png"), dpi=150)
+    plt.close(fig)
+
+
 def plot_sweep(rows, plt):
     fig, axes = plt.subplots(1, 2, figsize=(10, 3.8))
     for ax, idx, title, log in ((axes[0], 3, "Packet loss (%)", False),
@@ -413,6 +657,8 @@ def plot_sweep(rows, plt):
                     label=MODE_LABEL[m])
         if log:
             ax.set_yscale("log")
+            ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda v, _: "%g" % v))
+            ax.yaxis.set_minor_formatter(plt.NullFormatter())
         ax.axvline(80, color=INK2, linewidth=1, linestyle=(0, (2, 2)))
         ax.axvline(100, color=GRID, linewidth=1.2)
         ax.annotate("threshold 80%", xy=(80, 1), xycoords=("data", "axes fraction"),
@@ -446,7 +692,13 @@ def main():
         r = load_run(d) if mm else None
         if r:
             sweep[(mm.group(1), float(mm.group(2)))] = r
-    if not (cong or link or sweep):
+    flowruns = {}
+    for d in sorted(glob.glob(os.path.join(RESULTS, "flows", "*_n*"))):
+        mm = re.match(r"(static|adaptive|app_aware)_n(\d+)$", os.path.basename(d))
+        r = load_run(d) if mm else None
+        if r:
+            flowruns[(mm.group(1), int(mm.group(2)))] = r
+    if not (cong or link or sweep or flowruns):
         sys.exit("No results found - run the experiments first (see README).")
 
     lines = ["# Performance evaluation - static vs. SDN rerouting", "",
@@ -455,7 +707,9 @@ def main():
              "**App-aware** = adaptive + QoS feedback from the UDP application (proposed).", ""]
     section_congestion(cong, lines)
     section_linkfail(link, lines)
+    section_packets(link, lines)
     rows = section_sweep(sweep, lines)
+    frows = section_flows(flowruns, lines)
     path = os.path.join(RESULTS, "comparison.md")
     with open(path, "w") as fh:
         fh.write("\n".join(lines))
@@ -474,8 +728,11 @@ def main():
         plot_congestion(cong, plt)
     if link:
         plot_linkfail(link, plt)
+        plot_packets(link, plt)
     if rows:
         plot_sweep(rows, plt)
+    if frows:
+        plot_flows(frows, plt)
     print("wrote graphs in", RESULTS)
 
 

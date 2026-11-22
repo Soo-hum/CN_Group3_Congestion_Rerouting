@@ -5,3 +5,5 @@ logs/
 tests/logs/
 .vscode/
 .idea/
+/flow_*.csv
+/trace_*.csv

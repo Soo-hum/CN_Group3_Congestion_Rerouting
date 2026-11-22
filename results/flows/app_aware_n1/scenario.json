@@ -1,0 +1,24 @@
+{
+  "scenario": "flows",
+  "mode": "app_aware",
+  "t0": 1794933392.0444636,
+  "total_time": 24.0,
+  "ping_loss_pct": 0.0,
+  "packet_size": 1200,
+  "link_capacity_mbps": 10,
+  "flows": [
+    {
+      "name": "A",
+      "src": "h1",
+      "dst": "h3",
+      "sport": 40001,
+      "dport": 5001,
+      "rate": 2.0,
+      "start": 2.0,
+      "stop": 22.0
+    }
+  ],
+  "link_events": [],
+  "rate": 2.0,
+  "n_flows": 1
+}

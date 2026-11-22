@@ -1,0 +1,95 @@
+time,event,link,flow,from_path,to_path,load_mbps,utilization,detail
+1794933865.415,CONTROLLER_START,,,,,,,mode=app_aware threshold=0.80
+1794933867.030,SWITCH_UP,,,,,,,s1
+1794933867.251,SWITCH_UP,,,,,,,s2
+1794933867.348,SWITCH_UP,,,,,,,s3
+1794933867.457,SWITCH_UP,,,,,,,s4
+1794933867.567,SWITCH_UP,,,,,,,s5
+1794933878.713,FLOW_ADDED,,h1:40001->h3:5001,,P1 (via s2),,,
+1794933878.757,FLOW_ADDED,,h3:5001->h1:40001,,P1 (via s2) [reverse],,,
+1794933878.757,APP_SESSION_START,,h1:40001->h3:5001(A),,,,,name=A rate=2.00Mbps
+1794933880.713,FLOW_ADDED,,h2:40002->h4:5002,,P1 (via s2),,,
+1794933880.756,FLOW_ADDED,,h4:5002->h2:40002,,P1 (via s2) [reverse],,,
+1794933880.756,APP_SESSION_START,,h2:40002->h4:5002(B),,,,,name=B rate=2.00Mbps
+1794933882.713,FLOW_ADDED,,h1:40003->h4:5002,,P1 (via s2),,,
+1794933882.755,APP_SESSION_START,,h1:40003->h4:5002(C),,,,,name=C rate=2.00Mbps
+1794933882.756,FLOW_ADDED,,h4:5002->h1:40003,,P1 (via s2) [reverse],,,
+1794933884.714,FLOW_ADDED,,h2:40004->h3:5001,,P1 (via s2),,,
+1794933884.755,APP_SESSION_START,,h2:40004->h3:5001(D),,,,,name=D rate=2.00Mbps
+1794933884.757,FLOW_ADDED,,h3:5001->h2:40004,,P1 (via s2) [reverse],,,
+1794933886.436,CONGESTION_DETECTED,s1->s2,,,,8.23,0.82,source=port-stats flows=h1:40001->h3:5001(A);h2:40002->h4:5002(B);h1:40003->h4:5002(C);h2:40004->h3:5001(D)
+1794933886.437,REROUTED,s1->s2,h2:40004->h3:5001(D),P1 (via s2),P2 (via s3),8.23,0.82,reason=congestion flow_rate=2.07 new_path_load=0.00
+1794933886.713,FLOW_ADDED,,h1:40005->h3:5001,,P1 (via s2),,,
+1794933886.755,FLOW_ADDED,,h3:5001->h1:40005,,P1 (via s2) [reverse],,,
+1794933886.755,APP_SESSION_START,,h1:40005->h3:5001(E),,,,,name=E rate=2.00Mbps
+1794933888.713,FLOW_ADDED,,h2:40006->h4:5002,,P1 (via s2),,,
+1794933888.756,APP_SESSION_START,,h2:40006->h4:5002(F),,,,,name=F rate=2.00Mbps
+1794933888.757,FLOW_ADDED,,h4:5002->h2:40006,,P1 (via s2) [reverse],,,
+1794933890.001,APP_QOS_ALERT,,h2:40002->h4:5002(B),P1 (via s2),,,,delay=34.9ms loss=0.0%
+1794933890.002,REROUTED,s1->s2,h2:40006->h4:5002(F),P1 (via s2),P3 (via s4),10.32,1.03,reason=congestion flow_rate=2.07 new_path_load=0.00
+1794933890.004,REROUTED,s1->s2,h1:40005->h3:5001(E),P1 (via s2),P3 (via s4),8.25,0.82,reason=congestion flow_rate=2.06 new_path_load=2.07
+1794933890.004,APP_QOS_ALERT,,h1:40003->h4:5002(C),P1 (via s2),,,,delay=33.1ms loss=0.0%
+1794933890.004,APP_QOS_ALERT,,h2:40006->h4:5002(F),P3 (via s4),,,,delay=33.7ms loss=0.0%
+1794933890.004,APP_QOS_ALERT,,h1:40001->h3:5001(A),P1 (via s2),,,,delay=33.0ms loss=0.0%
+1794933890.004,APP_QOS_ALERT,,h1:40005->h3:5001(E),P3 (via s4),,,,delay=34.3ms loss=0.0%
+1794933890.501,APP_QOS_OK,,h2:40002->h4:5002(B),P1 (via s2),,,,delay=10.7ms loss=0.0%
+1794933890.502,APP_QOS_OK,,h1:40001->h3:5001(A),P1 (via s2),,,,delay=10.1ms loss=0.0%
+1794933890.502,APP_QOS_OK,,h1:40005->h3:5001(E),P3 (via s4),,,,delay=7.4ms loss=0.0%
+1794933890.502,APP_QOS_OK,,h1:40003->h4:5002(C),P1 (via s2),,,,delay=10.2ms loss=0.0%
+1794933890.502,APP_QOS_OK,,h2:40006->h4:5002(F),P3 (via s4),,,,delay=3.8ms loss=0.0%
+1794933890.713,FLOW_ADDED,,h1:40007->h4:5002,,P1 (via s2),,,
+1794933890.755,APP_SESSION_START,,h1:40007->h4:5002(G),,,,,name=G rate=2.00Mbps
+1794933890.756,FLOW_ADDED,,h4:5002->h1:40007,,P1 (via s2) [reverse],,,
+1794933892.714,FLOW_ADDED,,h2:40008->h3:5001,,P1 (via s2),,,
+1794933892.759,APP_SESSION_START,,h2:40008->h3:5001(H),,,,,name=H rate=2.00Mbps
+1794933892.760,FLOW_ADDED,,h3:5001->h2:40008,,P1 (via s2) [reverse],,,
+1794933894.001,APP_QOS_ALERT,,h2:40002->h4:5002(B),P1 (via s2),,,,delay=34.7ms loss=0.0%
+1794933894.002,REROUTED,s1->s2,h1:40007->h4:5002(G),P1 (via s2),P2 (via s3),10.36,1.04,reason=congestion flow_rate=2.07 new_path_load=2.07
+1794933894.002,REROUTED,s1->s2,h2:40008->h3:5001(H),P1 (via s2),P2 (via s3),8.29,0.83,reason=congestion flow_rate=2.07 new_path_load=4.15
+1794933894.002,APP_QOS_ALERT,,h1:40001->h3:5001(A),P1 (via s2),,,,delay=33.7ms loss=0.0%
+1794933894.002,APP_QOS_ALERT,,h1:40003->h4:5002(C),P1 (via s2),,,,delay=33.8ms loss=0.0%
+1794933894.003,APP_QOS_ALERT,,h1:40007->h4:5002(G),P2 (via s3),,,,delay=33.4ms loss=0.0%
+1794933894.003,APP_QOS_ALERT,,h2:40008->h3:5001(H),P2 (via s3),,,,delay=34.2ms loss=0.0%
+1794933894.501,APP_QOS_OK,,h2:40002->h4:5002(B),P1 (via s2),,,,delay=10.6ms loss=0.0%
+1794933894.501,APP_QOS_OK,,h1:40003->h4:5002(C),P1 (via s2),,,,delay=10.6ms loss=0.0%
+1794933894.501,APP_QOS_OK,,h1:40001->h3:5001(A),P1 (via s2),,,,delay=10.4ms loss=0.0%
+1794933894.501,APP_QOS_OK,,h1:40007->h4:5002(G),P2 (via s3),,,,delay=4.2ms loss=0.0%
+1794933894.501,APP_QOS_OK,,h2:40008->h3:5001(H),P2 (via s3),,,,delay=7.4ms loss=0.0%
+1794933894.713,FLOW_ADDED,,h1:40009->h3:5001,,P1 (via s2),,,
+1794933894.755,APP_SESSION_START,,h1:40009->h3:5001(I),,,,,name=I rate=2.00Mbps
+1794933894.756,FLOW_ADDED,,h3:5001->h1:40009,,P1 (via s2) [reverse],,,
+1794933896.713,FLOW_ADDED,,h2:40010->h4:5002,,P1 (via s2),,,
+1794933896.756,FLOW_ADDED,,h4:5002->h2:40010,,P1 (via s2) [reverse],,,
+1794933896.756,APP_SESSION_START,,h2:40010->h4:5002(J),,,,,name=J rate=2.00Mbps
+1794933898.002,APP_QOS_ALERT,,h1:40001->h3:5001(A),P1 (via s2),,,,delay=33.4ms loss=0.0%
+1794933898.003,REROUTED,s1->s2,h1:40009->h3:5001(I),P1 (via s2),P3 (via s4),10.37,1.04,reason=congestion flow_rate=2.07 new_path_load=4.15
+1794933898.004,APP_QOS_ALERT,,h1:40009->h3:5001(I),P3 (via s4),,,,delay=33.7ms loss=0.0%
+1794933898.004,APP_QOS_ALERT,,h2:40002->h4:5002(B),P1 (via s2),,,,delay=34.3ms loss=0.0%
+1794933898.004,APP_QOS_ALERT,,h1:40003->h4:5002(C),P1 (via s2),,,,delay=34.3ms loss=0.0%
+1794933898.004,APP_QOS_ALERT,,h2:40010->h4:5002(J),P1 (via s2),,,,delay=33.4ms loss=0.0%
+1794933898.501,APP_QOS_OK,,h1:40001->h3:5001(A),P1 (via s2),,,,delay=14.6ms loss=0.0%
+1794933898.501,APP_QOS_OK,,h1:40009->h3:5001(I),P3 (via s4),,,,delay=4.2ms loss=0.0%
+1794933898.501,APP_QOS_OK,,h2:40002->h4:5002(B),P1 (via s2),,,,delay=14.9ms loss=0.0%
+1794933898.501,APP_QOS_OK,,h1:40003->h4:5002(C),P1 (via s2),,,,delay=14.9ms loss=0.0%
+1794933898.501,APP_QOS_OK,,h2:40010->h4:5002(J),P1 (via s2),,,,delay=14.6ms loss=0.0%
+1794933902.448,REROUTED,s1->s2,h2:40010->h4:5002(J),P1 (via s2),P3 (via s4),8.29,0.83,reason=congestion flow_rate=2.07 new_path_load=6.20
+1794933904.448,CONGESTION_CLEARED,s1->s2,,,,6.23,0.62,
+1794933906.449,CONGESTION_DETECTED,s1->s4,,,,8.29,0.83,source=port-stats flows=h1:40005->h3:5001(E);h2:40006->h4:5002(F);h1:40009->h3:5001(I);h2:40010->h4:5002(J)
+1794933906.450,REROUTED,s1->s4,h2:40006->h4:5002(F),P3 (via s4),P2 (via s3),8.29,0.83,reason=congestion flow_rate=2.08 new_path_load=6.22
+1794933908.450,CONGESTION_CLEARED,s1->s4,,,,6.21,0.62,
+1794933910.451,CONGESTION_DETECTED,s1->s3,,,,8.30,0.83,source=port-stats flows=h2:40004->h3:5001(D);h2:40006->h4:5002(F);h1:40007->h4:5002(G);h2:40008->h3:5001(H)
+1794933910.452,REROUTED,s1->s3,h2:40008->h3:5001(H),P2 (via s3),P3 (via s4),8.30,0.83,reason=congestion flow_rate=2.08 new_path_load=6.22
+1794933912.453,CONGESTION_CLEARED,s1->s3,,,,6.20,0.62,
+1794933914.454,CONGESTION_DETECTED,s1->s4,,,,8.27,0.83,source=port-stats flows=h1:40005->h3:5001(E);h2:40008->h3:5001(H);h1:40009->h3:5001(I);h2:40010->h4:5002(J)
+1794933914.455,REROUTED,s1->s4,h2:40010->h4:5002(J),P3 (via s4),P2 (via s3),8.27,0.83,reason=congestion flow_rate=2.06 new_path_load=6.21
+1794933916.455,CONGESTION_CLEARED,s1->s4,,,,6.20,0.62,
+1794933916.758,APP_SESSION_END,,h1:40005->h3:5001(E),,,,,name=E reason=bye
+1794933916.759,APP_SESSION_END,,h2:40002->h4:5002(B),,,,,name=B reason=bye
+1794933916.760,APP_SESSION_END,,h2:40004->h3:5001(D),,,,,name=D reason=bye
+1794933916.760,APP_SESSION_END,,h1:40003->h4:5002(C),,,,,name=C reason=bye
+1794933916.761,APP_SESSION_END,,h2:40010->h4:5002(J),,,,,name=J reason=bye
+1794933916.761,APP_SESSION_END,,h1:40007->h4:5002(G),,,,,name=G reason=bye
+1794933916.761,APP_SESSION_END,,h1:40009->h3:5001(I),,,,,name=I reason=bye
+1794933916.761,APP_SESSION_END,,h1:40001->h3:5001(A),,,,,name=A reason=bye
+1794933916.762,APP_SESSION_END,,h2:40006->h4:5002(F),,,,,name=F reason=bye
+1794933916.762,APP_SESSION_END,,h2:40008->h3:5001(H),,,,,name=H reason=bye

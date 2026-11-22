@@ -1,0 +1,134 @@
+{
+  "scenario": "flows",
+  "mode": "static",
+  "t0": 1794933934.2593048,
+  "total_time": 46.0,
+  "ping_loss_pct": 0.0,
+  "packet_size": 1200,
+  "link_capacity_mbps": 10,
+  "flows": [
+    {
+      "name": "A",
+      "src": "h1",
+      "dst": "h3",
+      "sport": 40001,
+      "dport": 5001,
+      "rate": 2.0,
+      "start": 2.0,
+      "stop": 44.0
+    },
+    {
+      "name": "B",
+      "src": "h2",
+      "dst": "h4",
+      "sport": 40002,
+      "dport": 5002,
+      "rate": 2.0,
+      "start": 4.0,
+      "stop": 44.0
+    },
+    {
+      "name": "C",
+      "src": "h1",
+      "dst": "h4",
+      "sport": 40003,
+      "dport": 5002,
+      "rate": 2.0,
+      "start": 6.0,
+      "stop": 44.0
+    },
+    {
+      "name": "D",
+      "src": "h2",
+      "dst": "h3",
+      "sport": 40004,
+      "dport": 5001,
+      "rate": 2.0,
+      "start": 8.0,
+      "stop": 44.0
+    },
+    {
+      "name": "E",
+      "src": "h1",
+      "dst": "h3",
+      "sport": 40005,
+      "dport": 5001,
+      "rate": 2.0,
+      "start": 10.0,
+      "stop": 44.0
+    },
+    {
+      "name": "F",
+      "src": "h2",
+      "dst": "h4",
+      "sport": 40006,
+      "dport": 5002,
+      "rate": 2.0,
+      "start": 12.0,
+      "stop": 44.0
+    },
+    {
+      "name": "G",
+      "src": "h1",
+      "dst": "h4",
+      "sport": 40007,
+      "dport": 5002,
+      "rate": 2.0,
+      "start": 14.0,
+      "stop": 44.0
+    },
+    {
+      "name": "H",
+      "src": "h2",
+      "dst": "h3",
+      "sport": 40008,
+      "dport": 5001,
+      "rate": 2.0,
+      "start": 16.0,
+      "stop": 44.0
+    },
+    {
+      "name": "I",
+      "src": "h1",
+      "dst": "h3",
+      "sport": 40009,
+      "dport": 5001,
+      "rate": 2.0,
+      "start": 18.0,
+      "stop": 44.0
+    },
+    {
+      "name": "J",
+      "src": "h2",
+      "dst": "h4",
+      "sport": 40010,
+      "dport": 5002,
+      "rate": 2.0,
+      "start": 20.0,
+      "stop": 44.0
+    },
+    {
+      "name": "K",
+      "src": "h1",
+      "dst": "h4",
+      "sport": 40011,
+      "dport": 5002,
+      "rate": 2.0,
+      "start": 22.0,
+      "stop": 44.0
+    },
+    {
+      "name": "L",
+      "src": "h2",
+      "dst": "h3",
+      "sport": 40012,
+      "dport": 5001,
+      "rate": 2.0,
+      "start": 24.0,
+      "stop": 44.0
+    }
+  ],
+  "link_events": [],
+  "rate": 2.0,
+  "n_flows": 12
+}

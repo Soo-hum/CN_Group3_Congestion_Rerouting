@@ -6,6 +6,7 @@ client/server application, then save all logs.
     sudo python3 experiment.py --scenario congestion --mode app_aware
     sudo python3 experiment.py --scenario linkfail   --mode static
     sudo python3 experiment.py --scenario sweep --rate 5 --mode adaptive
+    sudo python3 experiment.py --scenario flows --flows 8 --mode app_aware
 
 The script starts the POX controller itself (with the right mode and log
 folder) and stops it at the end. Use --no-controller if you started one
@@ -20,12 +21,20 @@ Scenarios (all core links 10 Mbps; every new flow starts on path P1)
               link s1-s2 (P1) fails at t=12 s and is repaired at t=24 s
   sweep       A: h1->h3, B: h2->h4 at --rate Mbps each (A 2-32 s, B 7-32 s);
               repeated for several rates = several load levels on P1
+  flows       --flows N flows of --rate Mbps each (default 2), named A, B, C, ...
+              using all four host pairs (h1->h3, h2->h4, h1->h4, h2->h3); a new
+              flow joins every 2 s and all run until 20 s after the last one
+              joined. Repeated for N = 1..12 = increasing number of flows.
+
+The link failure scenario also writes a per-packet trace (trace_<flow>.csv:
+sequence number, send/receive timestamps, delay, gap/late status).
 
 Servers: one UDP server on h3 (port 5001) and one on h4 (port 5002). The h4
 server handles flows B and C at the same time (concurrent sessions).
 
-Output: results/<scenario>/<mode>[_r<rate>]/
+Output: results/<scenario>/<mode>[_r<rate> | _n<flows>]/
     flow_<X>.csv        per-interval QoS measured by the server
+    trace_<X>.csv       per-packet trace (link failure scenario)
     events.csv, link_stats.csv, flow_stats.csv, app_qos.csv   (controller)
     controller.log, hosts.log, flowtable_s1.txt, scenario.json
 """
@@ -55,7 +64,11 @@ def flow(name, src, dst, sport, rate, start, stop):
             "rate": rate, "start": start, "stop": stop}
 
 
-def scenario(name, rate):
+FLOW_PAIRS = [("h1", "h3"), ("h2", "h4"), ("h1", "h4"), ("h2", "h3")]
+MAX_FLOWS = 16                      # 2 servers x 8 sessions
+
+
+def scenario(name, rate, n_flows=1):
     if name == "congestion":
         return {"total": 56, "snapshots": [8, 22, 40], "link_events": [],
                 "flows": [flow("A", "h1", "h3", 40001, 6.0, 2, 52),
@@ -64,13 +77,22 @@ def scenario(name, rate):
     if name == "linkfail":
         return {"total": 42, "snapshots": [8, 16, 30],
                 "link_events": [{"t": 12, "a": "s1", "b": "s2", "state": "down"},
-                                {"t": 24, "a": "s1", "b": "s2", "state": "up"}],
+                                {"t": 24, "a": "s1", "b": "s2", "state": "up"}], "trace": True,
                 "flows": [flow("A", "h1", "h3", 40001, 3.0, 2, 40),
                           flow("B", "h2", "h4", 40002, 3.0, 2, 40)]}
     if name == "sweep":
         return {"total": 34, "snapshots": [20], "link_events": [], "rate": rate,
                 "flows": [flow("A", "h1", "h3", 40001, rate, 2, 32),
                           flow("B", "h2", "h4", 40002, rate, 7, 32)]}
+    if name == "flows":
+        join_gap = 2.0
+        stop = 2 + join_gap * (n_flows - 1) + 20
+        flows = []
+        for i in range(n_flows):
+            src, dst = FLOW_PAIRS[i % len(FLOW_PAIRS)]
+            flows.append(flow(chr(ord("A") + i), src, dst, 40001 + i, rate, 2 + join_gap * i, stop))
+        return {"total": stop + 2, "snapshots": [stop - 2], "link_events": [], "rate": rate,
+                "n_flows": n_flows, "flows": flows}
     raise ValueError(name)
 
 
@@ -139,7 +161,7 @@ def stop_controller(proc):
 
 # ---------------------------------------------------------------- experiment
 def run(args, outdir):
-    sc = scenario(args.scenario, args.rate)
+    sc = scenario(args.scenario, args.rate, args.flows)
     os.makedirs(outdir, exist_ok=True)
     for f in os.listdir(outdir):                       # fresh results for this run
         if f.endswith((".csv", ".log", ".txt", ".json")):
@@ -172,7 +194,7 @@ def run(args, outdir):
         for host, port in SERVERS.items():
             cmd = [py, os.path.join(app, "udp_server.py"), "--port", str(port),
                    "--duration", "%.1f" % (t0 + sc["total"] + 3 - time.time()),
-                   "--out-dir", outdir, "--interval", "0.5"]
+                   "--out-dir", outdir, "--interval", "0.5"] + (["--trace"] if sc.get("trace") else [])
             procs.append(net.get(host).popen(cmd, stdout=hosts_log, stderr=subprocess.STDOUT,
                                              cwd=HERE))
         time.sleep(1.0)
@@ -223,7 +245,8 @@ def run(args, outdir):
         meta = {"scenario": args.scenario, "mode": args.mode, "t0": t0,
                 "total_time": sc["total"], "ping_loss_pct": loss, "packet_size": PACKET_SIZE,
                 "link_capacity_mbps": nc.CORE_LINK_BW_MBPS, "flows": sc["flows"],
-                "link_events": sc["link_events"], "rate": sc.get("rate")}
+                "link_events": sc["link_events"], "rate": sc.get("rate"),
+                "n_flows": len(sc["flows"])}
         with open(os.path.join(outdir, "scenario.json"), "w") as fh:
             json.dump(meta, fh, indent=2)
         info("*** Done. Results in %s\n" % outdir)
@@ -240,10 +263,13 @@ def run(args, outdir):
 
 def main():
     ap = argparse.ArgumentParser(description="Run one congestion / link-failure experiment")
-    ap.add_argument("--scenario", choices=["congestion", "linkfail", "sweep"],
+    ap.add_argument("--scenario", choices=["congestion", "linkfail", "sweep", "flows"],
                     default="congestion")
     ap.add_argument("--mode", choices=["static", "adaptive", "app_aware"], required=True)
-    ap.add_argument("--rate", type=float, default=6.0, help="per-flow Mbps (sweep only)")
+    ap.add_argument("--rate", type=float, default=None,
+                    help="per-flow Mbps (sweep: default 6, flows: default 2)")
+    ap.add_argument("--flows", type=int, default=6,
+                    help="number of flows (flows scenario only, 1-%d)" % MAX_FLOWS)
     ap.add_argument("--out", default=None, help="output folder")
     ap.add_argument("--userspace", action="store_true",
                     help="OVS userspace datapath (only if the kernel module is missing)")
@@ -254,11 +280,17 @@ def main():
     args = ap.parse_args()
     if os.geteuid() != 0:
         sys.exit("Mininet needs root:  sudo python3 experiment.py ...")
+    if args.rate is None:
+        args.rate = 2.0 if args.scenario == "flows" else 6.0
+    if not 1 <= args.flows <= MAX_FLOWS:
+        sys.exit("--flows must be between 1 and %d" % MAX_FLOWS)
     setLogLevel("info")
     if args.out:
         outdir = os.path.abspath(args.out)
     elif args.scenario == "sweep":
         outdir = os.path.join(HERE, "results", "sweep", "%s_r%g" % (args.mode, args.rate))
+    elif args.scenario == "flows":
+        outdir = os.path.join(HERE, "results", "flows", "%s_n%d" % (args.mode, args.flows))
     else:
         outdir = os.path.join(HERE, "results", args.scenario, args.mode)
     sys.exit(run(args, outdir))

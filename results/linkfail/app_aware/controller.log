@@ -16,22 +16,22 @@ INFO:congestion:Switch s4 (dpid 4) connected, base rules installed
 INFO:openflow.of_01:[00-00-00-00-00-05 6] connected
 INFO:congestion:Switch s5 (dpid 5) connected, base rules installed
 INFO:congestion:Load s1->core: P1 0.0 Mbps | P2 0.0 Mbps | P3 0.0 Mbps | flows tracked: 0
+INFO:congestion:Load s1->core: P1 0.0 Mbps | P2 0.0 Mbps | P3 0.0 Mbps | flows tracked: 0
 INFO:congestion:New UDP flow h2:40002->h4:5002 on P1 (via s2)
 INFO:congestion:New UDP flow h1:40001->h3:5001 on P1 (via s2)
 INFO:congestion:New UDP flow h3:5001->h1:40001 on P1 (via s2) [reverse]
 INFO:congestion:New UDP flow h4:5002->h2:40002 on P1 (via s2) [reverse]
-INFO:congestion:Load s1->core: P1 0.6 Mbps | P2 0.0 Mbps | P3 0.0 Mbps | flows tracked: 4
+INFO:congestion:Load s1->core: P1 6.2 Mbps | P2 0.0 Mbps | P3 0.0 Mbps | flows tracked: 4
 INFO:congestion:Load s1->core: P1 6.2 Mbps | P2 0.0 Mbps | P3 0.0 Mbps | flows tracked: 4
 WARNING:congestion:LINK DOWN s1-s2 (4 flows affected)
 WARNING:congestion:REROUTE h2:40002->h4:5002(B) (3.11 Mbps): P1 (via s2) -> P2 (via s3)  [link-failure on s1->s2]
 WARNING:congestion:REROUTE h1:40001->h3:5001(A) (3.11 Mbps): P1 (via s2) -> P3 (via s4)  [link-failure on s1->s2]
 WARNING:congestion:REROUTE h3:5001->h1:40001 (0.00 Mbps): P1 (via s2) [reverse] -> P2 (via s3) [reverse]  [link-failure on s1->s2]
 WARNING:congestion:REROUTE h4:5002->h2:40002 (0.00 Mbps): P1 (via s2) [reverse] -> P3 (via s4) [reverse]  [link-failure on s1->s2]
-INFO:congestion:Load s1->core: P1 5.3 Mbps DOWN | P2 0.3 Mbps | P3 0.3 Mbps | flows tracked: 4
 INFO:congestion:Load s1->core: P1 0.0 Mbps DOWN | P2 3.1 Mbps | P3 3.1 Mbps | flows tracked: 4
 INFO:congestion:Load s1->core: P1 0.0 Mbps DOWN | P2 3.1 Mbps | P3 3.1 Mbps | flows tracked: 4
 INFO:congestion:LINK UP s1-s2
 INFO:congestion:Load s1->core: P1 0.0 Mbps | P2 3.1 Mbps | P3 3.1 Mbps | flows tracked: 4
 INFO:congestion:Load s1->core: P1 0.0 Mbps | P2 3.1 Mbps | P3 3.1 Mbps | flows tracked: 4
 INFO:congestion:Load s1->core: P1 0.0 Mbps | P2 3.1 Mbps | P3 3.1 Mbps | flows tracked: 4
-INFO:congestion:Load s1->core: P1 0.0 Mbps | P2 0.0 Mbps | P3 0.0 Mbps | flows tracked: 4
+INFO:congestion:Load s1->core: P1 0.0 Mbps | P2 3.1 Mbps | P3 3.1 Mbps | flows tracked: 4

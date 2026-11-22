@@ -1,7 +1,7 @@
 {
   "scenario": "linkfail",
   "mode": "static",
-  "t0": 1792733130.232652,
+  "t0": 1794932737.8727741,
   "total_time": 42,
   "ping_loss_pct": 0.0,
   "packet_size": 1200,
@@ -34,15 +34,16 @@
       "a": "s1",
       "b": "s2",
       "state": "down",
-      "actual_t": 12.032531023025513
+      "actual_t": 12.036055564880371
     },
     {
       "t": 24,
       "a": "s1",
       "b": "s2",
       "state": "up",
-      "actual_t": 24.09928250312805
+      "actual_t": 24.000696182250977
     }
   ],
-  "rate": null
+  "rate": null,
+  "n_flows": 2
 }

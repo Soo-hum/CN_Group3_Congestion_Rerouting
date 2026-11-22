@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Runs every experiment and then the analysis.
-#   sudo ./run_all.sh              # everything (~12 minutes)
+#   sudo ./run_all.sh              # everything (~25 minutes)
 #   sudo ./run_all.sh --quick      # only the main congestion comparison (~4 minutes)
+#   sudo ./run_all.sh --only flows # one scenario: congestion | linkfail | sweep | flows
 #   sudo ./run_all.sh --userspace  # add this only if the OVS kernel module is unavailable
 # POX location: $POX_DIR (default: ~/pox of the user who ran sudo)
 set -uo pipefail
@@ -14,13 +15,21 @@ fi
 PROJECT="$(cd "$(dirname "$0")" && pwd)"
 REAL_USER="${SUDO_USER:-$(id -un)}"
 QUICK=0
+ONLY=""
 EXTRA=()
-for arg in "$@"; do
-  case "$arg" in
+while [ $# -gt 0 ]; do
+  case "$1" in
     --quick) QUICK=1 ;;
-    *) EXTRA+=("$arg") ;;
+    --only) ONLY="${2:-}"; shift ;;
+    *) EXTRA+=("$1") ;;
   esac
+  shift
 done
+case "$ONLY" in
+  ""|congestion|linkfail|sweep|flows) ;;
+  *) echo "--only must be congestion, linkfail, sweep or flows"; exit 1 ;;
+esac
+want() { [ -z "$ONLY" ] || [ "$ONLY" = "$1" ]; }
 
 run() {   # run <scenario> <mode> [extra experiment args]
   local scenario="$1" mode="$2"; shift 2
@@ -37,15 +46,27 @@ run() {   # run <scenario> <mode> [extra experiment args]
 }
 
 # 1) congestion: baseline vs. SDN rerouting vs. SDN rerouting + application feedback
-for MODE in static adaptive app_aware; do run congestion "$MODE"; done
+if want congestion; then
+  for MODE in static adaptive app_aware; do run congestion "$MODE"; done
+fi
 
 if [ $QUICK -eq 0 ]; then
-  # 2) link failure on path P1
-  for MODE in static app_aware; do run linkfail "$MODE"; done
+  # 2) link failure on path P1 (also writes per-packet traces: seq + timestamps)
+  if want linkfail; then
+    for MODE in static app_aware; do run linkfail "$MODE"; done
+  fi
   # 3) load sweep: different offered loads on P1
-  for RATE in 3 4 5 6 7; do
-    for MODE in static app_aware; do run sweep "$MODE" --rate "$RATE"; done
-  done
+  if want sweep; then
+    for RATE in 3 4 5 6 7; do
+      for MODE in static app_aware; do run sweep "$MODE" --rate "$RATE"; done
+    done
+  fi
+  # 4) increasing number of flows (2 Mbps each)
+  if want flows; then
+    for N in 1 2 4 6 8 10 12; do
+      for MODE in static app_aware; do run flows "$MODE" --flows "$N"; done
+    done
+  fi
 fi
 
 echo

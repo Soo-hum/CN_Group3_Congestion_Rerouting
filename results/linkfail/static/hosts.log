@@ -1,42 +1,44 @@
-[server 05:25:26] listening on UDP 0.0.0.0:5002 (max 8 sessions, report every 0.5s, feedback=/tmp/sdn_app_feedback.sock)
-[server 05:25:26] listening on UDP 0.0.0.0:5001 (max 8 sessions, report every 0.5s, feedback=/tmp/sdn_app_feedback.sock)
-[server 05:25:32] session B from 10.0.0.2:40002 started: 3.0 Mbps, 1200-byte packets (1 active)
-[server 05:25:32] session A from 10.0.0.1:40001 started: 3.0 Mbps, 1200-byte packets (1 active)
+[server 16:25:33] listening on UDP 0.0.0.0:5001 (max 8 sessions, report every 0.5s, feedback=/tmp/sdn_app_feedback.sock)
+[server 16:25:33] per-packet trace: /home/claude/CN_Group3_Congestion_Rerouting/results/linkfail/static/trace_<flow>.csv
+[server 16:25:33] listening on UDP 0.0.0.0:5002 (max 8 sessions, report every 0.5s, feedback=/tmp/sdn_app_feedback.sock)
+[server 16:25:33] per-packet trace: /home/claude/CN_Group3_Congestion_Rerouting/results/linkfail/static/trace_<flow>.csv
+[server 16:25:39] session B from 10.0.0.2:40002 started: 3.0 Mbps, 1200-byte packets (1 active)
+[server 16:25:39] session A from 10.0.0.1:40001 started: 3.0 Mbps, 1200-byte packets (1 active)
+[client B] session accepted (reports every 500 ms)
 [client A] session accepted (reports every 500 ms)
-[client A] streaming 3.00 Mbps (1200-byte packets, 312 pkt/s) for 38.0s to 10.0.0.3:5001[client B] session accepted (reports every 500 ms)
-
+[client A] streaming 3.00 Mbps (1200-byte packets, 312 pkt/s) for 38.0s to 10.0.0.3:5001
 [client B] streaming 3.00 Mbps (1200-byte packets, 312 pkt/s) for 38.0s to 10.0.0.4:5002
-[client A] server sees 3.00 Mbps, loss 0.0%, delay 0.5 ms, jitter 0.10 ms
-[client B] server sees 3.00 Mbps, loss 0.0%, delay 0.4 ms, jitter 0.10 ms
-[client B] server sees 3.01 Mbps, loss 0.0%, delay 0.4 ms, jitter 0.07 ms
+[client B] server sees 3.01 Mbps, loss 0.0%, delay 0.4 ms, jitter 0.05 ms
+[client A] server sees 3.00 Mbps, loss 0.0%, delay 0.5 ms, jitter 0.07 ms
+[client B] server sees 3.00 Mbps, loss 0.0%, delay 0.4 ms, jitter 0.08 ms
 [client A] server sees 3.00 Mbps, loss 0.0%, delay 0.5 ms, jitter 0.11 ms
-[client A] server sees 3.01 Mbps, loss 0.0%, delay 0.5 ms, jitter 0.15 ms
-[client B] server sees 3.00 Mbps, loss 0.0%, delay 0.4 ms, jitter 0.12 ms
-[client A] server sees 3.00 Mbps, loss 0.0%, delay 0.5 ms, jitter 0.65 ms
-[client B] server sees 3.00 Mbps, loss 0.0%, delay 0.4 ms, jitter 0.43 ms
-[client B] server sees 3.00 Mbps, loss 0.0%, delay 0.4 ms, jitter 0.13 ms
-[client A] server sees 3.01 Mbps, loss 0.0%, delay 0.4 ms, jitter 0.14 ms
-[client B] server sees 3.01 Mbps, loss 0.0%, delay 0.4 ms, jitter 0.14 ms
-[client A] server sees 3.01 Mbps, loss 0.0%, delay 0.5 ms, jitter 0.16 ms
-[client B] server sees 3.00 Mbps, loss 0.0%, delay 0.4 ms, jitter 0.21 ms
-[client A] server sees 3.00 Mbps, loss 0.0%, delay 0.5 ms, jitter 0.25 ms
-[client A] server sees 3.00 Mbps, loss 0.0%, delay 0.4 ms, jitter 0.12 ms
-[client B] server sees 3.00 Mbps, loss 0.0%, delay 0.4 ms, jitter 0.14 ms
-[client B] server sees 3.00 Mbps, loss 0.0%, delay 0.4 ms, jitter 0.10 ms
+[client B] server sees 3.01 Mbps, loss 0.0%, delay 0.4 ms, jitter 0.08 ms
+[client A] server sees 3.00 Mbps, loss 0.0%, delay 0.5 ms, jitter 0.07 ms
+[client A] server sees 3.00 Mbps, loss 0.0%, delay 0.5 ms, jitter 0.09 ms
+[client B] server sees 3.00 Mbps, loss 0.0%, delay 0.4 ms, jitter 0.11 ms
+[client A] server sees 3.01 Mbps, loss 0.0%, delay 0.6 ms, jitter 0.16 ms
+[client B] server sees 3.01 Mbps, loss 0.0%, delay 0.5 ms, jitter 0.11 ms
+[client B] server sees 3.01 Mbps, loss 0.0%, delay 0.5 ms, jitter 0.09 ms
 [client A] server sees 3.01 Mbps, loss 0.0%, delay 0.5 ms, jitter 0.10 ms
-[client A] server sees 3.00 Mbps, loss 0.0%, delay 0.7 ms, jitter 0.26 ms
-[client B] server sees 3.00 Mbps, loss 0.0%, delay 0.8 ms, jitter 0.25 ms
-[client A] server sees 3.00 Mbps, loss 0.0%, delay 0.4 ms, jitter 0.10 ms
-[client B] server sees 3.00 Mbps, loss 0.0%, delay 0.4 ms, jitter 0.09 ms
-[client A] server sees 3.00 Mbps, loss 0.0%, delay 0.5 ms, jitter 0.20 ms
-[client B] server sees 3.00 Mbps, loss 0.0%, delay 0.4 ms, jitter 0.25 ms
-[client B] server sees 3.00 Mbps, loss 0.0%, delay 0.4 ms, jitter 0.10 ms
-[client A] server sees 3.00 Mbps, loss 0.0%, delay 0.4 ms, jitter 0.10 ms
-[client A] done sending: 11875 packets in 38.0s (3.00 Mbps offered), send errors 0, ICMP errors 0
+[client B] server sees 3.01 Mbps, loss 0.0%, delay 0.4 ms, jitter 0.11 ms
+[client A] server sees 3.01 Mbps, loss 0.0%, delay 0.5 ms, jitter 0.10 ms
+[client A] server sees 3.01 Mbps, loss 0.0%, delay 0.6 ms, jitter 0.21 ms
+[client B] server sees 3.01 Mbps, loss 0.0%, delay 0.5 ms, jitter 0.12 ms
+[client A] server sees 3.01 Mbps, loss 0.0%, delay 0.5 ms, jitter 0.14 ms
+[client B] server sees 3.01 Mbps, loss 0.0%, delay 0.5 ms, jitter 0.10 ms
+[client A] server sees 3.01 Mbps, loss 0.0%, delay 0.5 ms, jitter 0.11 ms
+[client B] server sees 3.00 Mbps, loss 0.0%, delay 0.4 ms, jitter 0.08 ms
+[client B] server sees 3.01 Mbps, loss 0.0%, delay 0.4 ms, jitter 0.07 ms
+[client A] server sees 3.01 Mbps, loss 0.0%, delay 0.5 ms, jitter 0.07 ms
+[client A] server sees 3.01 Mbps, loss 0.0%, delay 0.6 ms, jitter 0.15 ms
+[client B] server sees 3.01 Mbps, loss 0.0%, delay 0.5 ms, jitter 0.12 ms
+[client B] server sees 3.01 Mbps, loss 0.0%, delay 0.5 ms, jitter 0.08 ms
+[client A] server sees 3.01 Mbps, loss 0.0%, delay 0.6 ms, jitter 0.11 ms
 [client B] done sending: 11875 packets in 38.0s (3.00 Mbps offered), send errors 0, ICMP errors 0
-[server 05:26:10] session A finished: sent 11875, received 8102, lost 3773 (31.77%), avg delay 0.5 ms
-[server 05:26:10] session B finished: sent 11875, received 8102, lost 3773 (31.77%), avg delay 0.4 ms
-[client A] SUMMARY: sent 11875, server received 8102, lost 3773 (31.77%), avg delay 0.5 ms, avg throughput 2.04 Mbps
-[client B] SUMMARY: sent 11875, server received 8102, lost 3773 (31.77%), avg delay 0.4 ms, avg throughput 2.04 Mbps
-[server 05:26:15] stopped. sessions served: 1, rejected: 0, malformed datagrams: 0, packets for unknown sessions: 0[server 05:26:15] stopped. sessions served: 1, rejected: 0, malformed datagrams: 0, packets for unknown sessions: 0
-
+[server 16:26:17] session B finished: sent 11875, received 8133, lost 3742 (31.51%), avg delay 0.5 ms, out of order 0, duplicates 0
+[client A] done sending: 11875 packets in 38.0s (3.00 Mbps offered), send errors 0, ICMP errors 0
+[client B] SUMMARY: sent 11875, server received 8133, lost 3742 (31.51%), avg delay 0.5 ms, avg throughput 2.05 Mbps
+[server 16:26:17] session A finished: sent 11875, received 8133, lost 3742 (31.51%), avg delay 0.5 ms, out of order 0, duplicates 0
+[client A] SUMMARY: sent 11875, server received 8133, lost 3742 (31.51%), avg delay 0.5 ms, avg throughput 2.05 Mbps
+[server 16:26:22] stopped. sessions served: 1, rejected: 0, malformed datagrams: 0, packets for unknown sessions: 0
+[server 16:26:22] stopped. sessions served: 1, rejected: 0, malformed datagrams: 0, packets for unknown sessions: 0

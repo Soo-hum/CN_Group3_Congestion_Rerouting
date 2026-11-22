@@ -123,6 +123,7 @@ class CongestionController(object):
         self.port_prev = {}
         self.over_count = {}
         self.congested = set()
+        self.no_path_warned = set()      # links already reported as "no better path"
         self.link_cooldown = {}
         self.down_links = set()
         self.tick_no = 0
@@ -185,7 +186,10 @@ class CongestionController(object):
             sock.bind(path)
             os.chmod(path, 0o777)
         except OSError as e:
-            log.warning("Application feedback channel disabled (%s)", e)
+            log.warning("Application feedback channel disabled (%s)%s", e,
+                        " - an earlier sudo run left this file; remove it with: "
+                        "sudo rm -f %s, then restart the controller" % path
+                        if isinstance(e, PermissionError) else "")
             return
         self._fb_sock, self._fb_path = sock, path
 
@@ -498,11 +502,18 @@ class CongestionController(object):
             link = self.port_to_link.get((sw, st.port_no))
             if link is None:
                 continue
+            if st.tx_bytes >= 0xFFFFFFFFFFFFFFFF - 1:     # "unknown" (port being deleted)
+                continue
             prev = self.port_prev.get((sw, st.port_no))
             self.port_prev[(sw, st.port_no)] = (st.tx_bytes, now)
             if prev is None or now <= prev[1] or st.tx_bytes < prev[0]:
                 continue
             mbps = (st.tx_bytes - prev[0]) * 8.0 / (now - prev[1]) / 1e6
+            if mbps > 100 * self.capacity:                  # counter glitch, not real traffic
+                continue
+            # a link cannot carry more than its capacity: a higher value only means two
+            # statistics replies arrived close together (e.g. right after a link failure)
+            mbps = min(mbps, self.capacity)
             self.link_rate[link] = mbps
             self._write(self._linkcsv, ["%.3f" % now, "%s->%s" % link,
                                         "%.3f" % mbps, "%.3f" % (mbps / self.capacity)])
@@ -517,12 +528,19 @@ class CongestionController(object):
             flow = self.flows.get((_ip(m.nw_src), _ip(m.nw_dst), m.tp_src, m.tp_dst))
             if flow is None or flow.path[0] != sw:
                 continue
+            # The time base is the SWITCH's own timer for the rule (duration_sec/nsec), not
+            # the moment this reply is processed: on a busy machine replies can be handled
+            # late or two at once, which would make a 2 Mbps flow look like 6 Mbps.
+            dur = st.duration_sec + st.duration_nsec / 1e9
             if flow.last_bytes is not None and st.byte_count >= flow.last_bytes \
-                    and now > flow.last_time:
+                    and dur - flow.last_time >= 0.2:
                 flow.rate_mbps = (st.byte_count - flow.last_bytes) * 8.0 / \
-                    (now - flow.last_time) / 1e6
+                    (dur - flow.last_time) / 1e6
                 flow.measured = True
-            flow.last_bytes, flow.last_time = st.byte_count, now
+            elif flow.last_bytes is not None and st.byte_count >= flow.last_bytes \
+                    and dur >= flow.last_time:
+                continue                     # too short an interval: keep the old baseline
+            flow.last_bytes, flow.last_time = st.byte_count, dur
             self._write(self._flowcsv, ["%.3f" % now, flow.name,
                                         nc.path_name(flow.path), "%.3f" % flow.rate_mbps])
 
@@ -555,6 +573,7 @@ class CongestionController(object):
                 self.over_count[link] = 0
                 if link in self.congested and load < self.clear_threshold * self.capacity:
                     self.congested.discard(link)
+                    self.no_path_warned.discard(link)
                     log.info("Congestion cleared on %s->%s (%.2f Mbps)", link[0], link[1], load)
                     self._event("CONGESTION_CLEARED", link=link, load=load)
                 continue
@@ -577,26 +596,49 @@ class CongestionController(object):
                 self._relieve(link, load, now)
 
     def _relieve(self, link, load, now):
-        """Move ONE flow off the congested link."""
-        excess = load - self.threshold * self.capacity
-        movable = [(self._rate(f), f.created, f) for f in self.flows.values()
-                   if link in f.links() and self._rate(f) > 0.05
-                   and now - f.last_moved >= self.hold]
-        for flow in order_flows_to_move(movable, excess):
-            paths = [p for p in nc.all_paths(flow.path[0], flow.path[-1]) if self._usable(p)]
-            target = choose_path(paths, flow.path, self._rate(flow),
-                                 lambda p, f=flow: self._path_load(p, exclude=f),
-                                 self.threshold * self.capacity, load)
-            if target is not None:
-                old_links = flow.links()
-                self._reroute(flow, target, link, load, now, reason="congestion")
-                # counters of every link on the old and new path are stale for a poll
-                for l in old_links + flow.links():
-                    self.link_cooldown[l] = now + self.cooldown
-                    self.over_count[l] = 0
-                return
-        if movable:
-            log.warning("No better path available for congested link %s->%s", *link)
+        """Move flows off the congested link until its projected load is under the
+        threshold. Usually one flow is enough; when several flows arrived at once
+        (many flows), several are moved in the same decision.
+
+        The measured port rate can never exceed the link capacity, so after the
+        first move the remaining load is estimated from the per-flow rates
+        (flow statistics at the ingress switch), which do show the full demand."""
+        limit = self.threshold * self.capacity
+        moved_rate, moved, touched = 0.0, 0, set()
+        while True:
+            projected = load if not moved else max(self._offered_on_link(link),
+                                                   load - moved_rate)
+            if moved and projected < limit:
+                break
+            movable = [(self._rate(f), f.created, f) for f in self.flows.values()
+                       if link in f.links() and self._rate(f) > 0.05
+                       and now - f.last_moved >= self.hold]
+            done = False
+            for flow in order_flows_to_move(movable, projected - limit):
+                paths = [p for p in nc.all_paths(flow.path[0], flow.path[-1]) if self._usable(p)]
+                target = choose_path(paths, flow.path, self._rate(flow),
+                                     lambda p, f=flow: self._path_load(p, exclude=f),
+                                     limit, projected)
+                if target is not None:
+                    touched.update(flow.links())
+                    self._reroute(flow, target, link, projected, now, reason="congestion")
+                    touched.update(flow.links())
+                    moved_rate += self._rate(flow)
+                    moved += 1
+                    done = True
+                    break
+            if not done:
+                break
+        if moved:
+            # counters of every link on the old and new paths are stale for a poll
+            for l in touched:
+                self.link_cooldown[l] = now + self.cooldown
+                self.over_count[l] = 0
+            return
+        if movable and link not in self.no_path_warned:      # once per congestion episode
+            self.no_path_warned.add(link)
+            log.warning("No better path available for congested link %s->%s "
+                        "(all paths near the threshold)", *link)
             self._event("NO_ALTERNATE_PATH", link=link, load=load)
         self.link_cooldown[link] = now + self.cooldown
 

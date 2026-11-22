@@ -1,7 +1,7 @@
 {
   "scenario": "congestion",
   "mode": "app_aware",
-  "t0": 1792733058.5490942,
+  "t0": 1794932666.3383067,
   "total_time": 56,
   "ping_loss_pct": 0.0,
   "packet_size": 1200,
@@ -39,5 +39,6 @@
     }
   ],
   "link_events": [],
-  "rate": null
+  "rate": null,
+  "n_flows": 3
 }

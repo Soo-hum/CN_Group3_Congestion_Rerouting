@@ -1,0 +1,6 @@
+===== t = 20.0 s (flows, app_aware) =====
+ cookie=0x0, duration=18.044s, table=0, n_packets=3650, n_bytes=4533300, idle_timeout=10, priority=300,udp,nw_src=10.0.0.1,nw_dst=10.0.0.3,tp_src=40001,tp_dst=5001 actions=output:"s1-eth3"
+ cookie=0x0, duration=17.994s, table=0, n_packets=36, n_bytes=3076, idle_timeout=10, priority=300,udp,nw_src=10.0.0.3,nw_dst=10.0.0.1,tp_src=5001,tp_dst=40001 actions=output:"s1-eth1"
+ cookie=0x0, duration=28.328s, table=0, n_packets=1, n_bytes=88, priority=200,udp,in_port="s1-eth1" actions=CONTROLLER:65535
+ cookie=0x0, duration=28.328s, table=0, n_packets=0, n_bytes=0, priority=200,udp,in_port="s1-eth2" actions=CONTROLLER:65535
+

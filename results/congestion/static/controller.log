@@ -23,8 +23,8 @@ INFO:congestion:Load s1->core: P1 6.2 Mbps | P2 0.0 Mbps | P3 0.0 Mbps | flows t
 INFO:congestion:Load s1->core: P1 6.2 Mbps | P2 0.0 Mbps | P3 0.0 Mbps | flows tracked: 2
 INFO:congestion:New UDP flow h2:40002->h4:5002 on P1 (via s2)
 INFO:congestion:New UDP flow h4:5002->h2:40002 on P1 (via s2) [reverse]
-WARNING:congestion:CONGESTION on s1->s2: 12.42 Mbps (124%) flows=['h1:40001->h3:5001(A)', 'h2:40002->h4:5002(B)']
-WARNING:congestion:CONGESTION on s2->s5: 12.42 Mbps (124%) flows=['h1:40001->h3:5001(A)', 'h2:40002->h4:5002(B)']
+WARNING:congestion:CONGESTION on s1->s2: 12.43 Mbps (124%) flows=['h1:40001->h3:5001(A)', 'h2:40002->h4:5002(B)']
+WARNING:congestion:CONGESTION on s2->s5: 12.43 Mbps (124%) flows=['h1:40001->h3:5001(A)', 'h2:40002->h4:5002(B)']
 INFO:congestion:Load s1->core: P1 10.0 Mbps | P2 0.0 Mbps | P3 0.0 Mbps | flows tracked: 4
 INFO:congestion:Load s1->core: P1 10.0 Mbps | P2 0.0 Mbps | P3 0.0 Mbps | flows tracked: 4
 INFO:congestion:Load s1->core: P1 10.0 Mbps | P2 0.0 Mbps | P3 0.0 Mbps | flows tracked: 4
@@ -35,7 +35,6 @@ INFO:congestion:Load s1->core: P1 10.0 Mbps | P2 0.0 Mbps | P3 0.0 Mbps | flows 
 INFO:congestion:Load s1->core: P1 10.0 Mbps | P2 0.0 Mbps | P3 0.0 Mbps | flows tracked: 6
 INFO:congestion:Load s1->core: P1 10.0 Mbps | P2 0.0 Mbps | P3 0.0 Mbps | flows tracked: 6
 INFO:congestion:Load s1->core: P1 10.0 Mbps | P2 0.0 Mbps | P3 0.0 Mbps | flows tracked: 6
-INFO:congestion:Congestion cleared on s1->s2 (6.68 Mbps)
-INFO:congestion:Congestion cleared on s2->s5 (6.69 Mbps)
+INFO:congestion:Congestion cleared on s1->s2 (6.70 Mbps)
+INFO:congestion:Congestion cleared on s2->s5 (6.71 Mbps)
 INFO:congestion:Load s1->core: P1 0.0 Mbps | P2 0.0 Mbps | P3 0.0 Mbps | flows tracked: 6
-INFO:congestion:Flow h1:40003->h4:5002(C) expired (idle)

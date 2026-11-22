@@ -23,22 +23,22 @@ INFO:congestion:Load s1->core: P1 6.2 Mbps | P2 0.0 Mbps | P3 0.0 Mbps | flows t
 INFO:congestion:Load s1->core: P1 6.2 Mbps | P2 0.0 Mbps | P3 0.0 Mbps | flows tracked: 2
 INFO:congestion:New UDP flow h2:40002->h4:5002 on P1 (via s2)
 INFO:congestion:New UDP flow h4:5002->h2:40002 on P1 (via s2) [reverse]
-WARNING:congestion:CONGESTION on s1->s2 reported by application (h1:40001->h3:5001(A): delay 30 ms, loss 0.0%), link load 12.38 Mbps
+WARNING:congestion:CONGESTION on s1->s2 reported by application (h2:40002->h4:5002(B): delay 71 ms, loss 0.0%), link load 12.37 Mbps
 WARNING:congestion:REROUTE h2:40002->h4:5002(B) (6.21 Mbps): P1 (via s2) -> P2 (via s3)  [congestion on s1->s2]
-INFO:congestion:Congestion cleared on s1->s2 (6.22 Mbps)
+INFO:congestion:Congestion cleared on s1->s2 (6.76 Mbps)
 INFO:congestion:Load s1->core: P1 6.2 Mbps | P2 6.2 Mbps | P3 0.0 Mbps | flows tracked: 4
 INFO:congestion:Load s1->core: P1 6.2 Mbps | P2 6.2 Mbps | P3 0.0 Mbps | flows tracked: 4
 INFO:congestion:Load s1->core: P1 6.2 Mbps | P2 6.2 Mbps | P3 0.0 Mbps | flows tracked: 4
 INFO:congestion:New UDP flow h1:40003->h4:5002 on P1 (via s2)
 INFO:congestion:New UDP flow h4:5002->h1:40003 on P1 (via s2) [reverse]
-WARNING:congestion:CONGESTION on s1->s2 reported by application (h1:40001->h3:5001(A): delay 30 ms, loss 0.0%), link load 12.91 Mbps
-WARNING:congestion:REROUTE h1:40003->h4:5002(C) (6.21 Mbps): P1 (via s2) -> P3 (via s4)  [congestion on s1->s2]
-INFO:congestion:Congestion cleared on s1->s2 (6.21 Mbps)
+WARNING:congestion:CONGESTION on s1->s2 reported by application (h1:40001->h3:5001(A): delay 71 ms, loss 0.0%), link load 11.57 Mbps
+WARNING:congestion:REROUTE h1:40001->h3:5001(A) (5.36 Mbps): P1 (via s2) -> P3 (via s4)  [congestion on s1->s2]
+INFO:congestion:Congestion cleared on s1->s2 (6.78 Mbps)
 INFO:congestion:Load s1->core: P1 6.2 Mbps | P2 6.2 Mbps | P3 6.2 Mbps | flows tracked: 6
 INFO:congestion:Load s1->core: P1 6.2 Mbps | P2 6.2 Mbps | P3 6.2 Mbps | flows tracked: 6
 INFO:congestion:Load s1->core: P1 6.2 Mbps | P2 6.2 Mbps | P3 6.2 Mbps | flows tracked: 6
 INFO:congestion:Load s1->core: P1 6.2 Mbps | P2 6.2 Mbps | P3 6.2 Mbps | flows tracked: 6
-INFO:congestion:Load s1->core: P1 6.2 Mbps | P2 6.2 Mbps | P3 0.0 Mbps | flows tracked: 6
+INFO:congestion:Load s1->core: P1 0.0 Mbps | P2 6.2 Mbps | P3 6.2 Mbps | flows tracked: 6
 INFO:congestion:Load s1->core: P1 0.0 Mbps | P2 0.0 Mbps | P3 0.0 Mbps | flows tracked: 6
 INFO:congestion:Flow h1:40003->h4:5002(C) expired (idle)
 INFO:congestion:Flow h4:5002->h1:40003 expired (idle)

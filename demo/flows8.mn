@@ -1,0 +1,29 @@
+sh pkill -f '[u]dp_server.py'; pkill -f '[u]dp_client.py'; sleep 1
+sh rm -rf /tmp/d2; mkdir -p /tmp/d2
+h3 python3 app/udp_server.py --port 5001 --out-dir /tmp/d2 --trace > /tmp/d2/server_h3.log 2>&1 &
+h4 python3 app/udp_server.py --port 5002 --out-dir /tmp/d2 --trace > /tmp/d2/server_h4.log 2>&1 &
+sh sleep 1
+sh echo '*** F1: h1 to h3, 2 Mbps (UDP port 41001)'
+h1 python3 app/udp_client.py --server 10.0.0.3 --port 5001 --rate 2 --duration 300 --name F1 --sport 41001 > /tmp/d2/client_F1.log 2>&1 &
+sh sleep 2
+sh echo '*** F2: h2 to h4, 2 Mbps (UDP port 41002)'
+h2 python3 app/udp_client.py --server 10.0.0.4 --port 5002 --rate 2 --duration 298 --name F2 --sport 41002 > /tmp/d2/client_F2.log 2>&1 &
+sh sleep 2
+sh echo '*** F3: h1 to h4, 2 Mbps (UDP port 41003)'
+h1 python3 app/udp_client.py --server 10.0.0.4 --port 5002 --rate 2 --duration 296 --name F3 --sport 41003 > /tmp/d2/client_F3.log 2>&1 &
+sh sleep 2
+sh echo '*** F4: h2 to h3, 2 Mbps (UDP port 41004)'
+h2 python3 app/udp_client.py --server 10.0.0.3 --port 5001 --rate 2 --duration 294 --name F4 --sport 41004 > /tmp/d2/client_F4.log 2>&1 &
+sh sleep 2
+sh echo '*** F5: h1 to h3, 2 Mbps (UDP port 41005)'
+h1 python3 app/udp_client.py --server 10.0.0.3 --port 5001 --rate 2 --duration 292 --name F5 --sport 41005 > /tmp/d2/client_F5.log 2>&1 &
+sh sleep 2
+sh echo '*** F6: h2 to h4, 2 Mbps (UDP port 41006)'
+h2 python3 app/udp_client.py --server 10.0.0.4 --port 5002 --rate 2 --duration 290 --name F6 --sport 41006 > /tmp/d2/client_F6.log 2>&1 &
+sh sleep 2
+sh echo '*** F7: h1 to h4, 2 Mbps (UDP port 41007)'
+h1 python3 app/udp_client.py --server 10.0.0.4 --port 5002 --rate 2 --duration 288 --name F7 --sport 41007 > /tmp/d2/client_F7.log 2>&1 &
+sh sleep 2
+sh echo '*** F8: h2 to h3, 2 Mbps (UDP port 41008)'
+h2 python3 app/udp_client.py --server 10.0.0.3 --port 5001 --rate 2 --duration 286 --name F8 --sport 41008 > /tmp/d2/client_F8.log 2>&1 &
+sh echo '*** 8 flows running for about 5 minutes (16 Mbps in total; one path carries 10 Mbps)'

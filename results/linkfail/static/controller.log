@@ -27,7 +27,7 @@ WARNING:congestion:LINK DOWN s1-s2 (4 flows affected)
 INFO:congestion:Load s1->core: P1 0.0 Mbps DOWN | P2 0.0 Mbps | P3 0.0 Mbps | flows tracked: 4
 INFO:congestion:Load s1->core: P1 0.0 Mbps DOWN | P2 0.0 Mbps | P3 0.0 Mbps | flows tracked: 4
 INFO:congestion:LINK UP s1-s2
-INFO:congestion:Load s1->core: P1 2.2 Mbps | P2 0.0 Mbps | P3 0.0 Mbps | flows tracked: 4
+INFO:congestion:Load s1->core: P1 4.0 Mbps | P2 0.0 Mbps | P3 0.0 Mbps | flows tracked: 4
 INFO:congestion:Load s1->core: P1 6.2 Mbps | P2 0.0 Mbps | P3 0.0 Mbps | flows tracked: 4
 INFO:congestion:Load s1->core: P1 6.2 Mbps | P2 0.0 Mbps | P3 0.0 Mbps | flows tracked: 4
 INFO:congestion:Load s1->core: P1 6.2 Mbps | P2 0.0 Mbps | P3 0.0 Mbps | flows tracked: 4

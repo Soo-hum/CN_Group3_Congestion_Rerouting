@@ -24,6 +24,11 @@ followed by a type-specific body:
 
 The timestamp is the sender's clock; inside Mininet all hosts share one
 clock, so receive_time - timestamp is the real one-way delay.
+
+Sequence numbers count DATA packets of a session from 0. The receiver uses
+them (SeqTracker below) to find lost packets (a gap: seq jumps ahead), packets
+that arrive out of order (a late packet that fills an earlier gap) and
+duplicates.
 """
 
 import struct
@@ -111,3 +116,51 @@ def unpack(data):
         if not (0 < body["rate_mbps"] < 10000) or body["size"] < MIN_DATA_SIZE:
             raise ProtocolError("HELLO with invalid rate/size")
     return Message(msg_type, sid, seq, ts, body, len(data))
+
+
+def fmt_time(ts):
+    """Epoch seconds -> 'HH:MM:SS.uuuuuu' (local time, microseconds)."""
+    return time.strftime("%H:%M:%S", time.localtime(ts)) + ".%06d" % int((ts % 1) * 1e6)
+
+
+class SeqTracker(object):
+    """Classifies each arriving DATA packet by its sequence number.
+
+        ok    the next packet in order (seq == highest seen + 1)
+        gap   seq jumped ahead: the packets in between are missing (lost so far)
+        late  fills an earlier gap: the packet was not lost, just out of order
+        dup   this sequence number was already received
+    """
+
+    MAX_MISSING = 100000            # remember at most this many missing seq numbers
+
+    def __init__(self):
+        self.max_seq = -1
+        self.missing = set()
+        self.received = self.gaps = self.reordered = self.duplicates = 0
+
+    def update(self, seq):
+        """Returns (status, first_missing, n_missing) - the last two only for 'gap'."""
+        expected = self.max_seq + 1
+        if seq >= expected:
+            self.received += 1
+            self.max_seq = seq
+            if seq == expected:
+                return "ok", None, 0
+            n = seq - expected
+            self.gaps += 1
+            if len(self.missing) + n <= self.MAX_MISSING:
+                self.missing.update(range(expected, seq))
+            return "gap", expected, n
+        if seq in self.missing:
+            self.missing.discard(seq)
+            self.received += 1
+            self.reordered += 1
+            return "late", None, 0
+        self.duplicates += 1
+        return "dup", None, 0
+
+    @property
+    def lost(self):
+        """Packets still missing (sent before the highest seq seen, never received)."""
+        return self.max_seq + 1 - self.received

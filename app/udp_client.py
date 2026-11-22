@@ -7,6 +7,7 @@ Life of a session
        HELLO_ACK  <- server  (or REJECT if the server is full). HELLO is retried
                              because UDP may lose it.
     2. DATA       -> server  constant bit rate, each packet carries seq + send time
+                             (--show-packets prints them as they are sent)
        REPORT     <- server  every interval: what the server actually received
     3. BYE        -> server  (with the number of packets sent; retried)
        SUMMARY    <- server  final loss / delay / throughput
@@ -17,6 +18,8 @@ REPORT / ERROR / SUMMARY messages at the same time.
 Error handling
     * server not running   -> ICMP "port unreachable" is noticed (connected UDP
                               socket), HELLO retried, then exit code 2
+    * congested path       -> HELLO / BYE retries wait 1 s, 2 s, then 4 s (backoff),
+                              so a reply delayed by a full queue still arrives in time
     * server full          -> REJECT received, exit code 3
     * server restarted     -> server answers ERROR(unknown session), the client
                               sends HELLO again and continues the same stream
@@ -125,10 +128,19 @@ class Client(object):
             self.send_errors += 1
         return False
 
+    def backoff(self, attempt):
+        """Seconds to wait for an answer: timeout, 2x, 4x (max). A congested path can
+        delay the reply by about a second, so later attempts wait longer (like TCP's SYN
+        retries). If the kernel reported 'port unreachable', nothing is congested: keep
+        the short timeout."""
+        if self.icmp_errors:
+            return self.a.timeout
+        return self.a.timeout * min(2 ** (attempt - 1), 4)
+
     def handshake(self):
         for attempt in range(1, self.a.retries + 1):
             self.safe_send(self.hello_packet())
-            if self.acked.wait(self.a.timeout):
+            if self.acked.wait(self.backoff(attempt)):
                 return EXIT_OK
             if self.rejected.is_set():
                 self.log("REJECTED by server (server full)")
@@ -164,16 +176,20 @@ class Client(object):
                 continue
             burst = 0
             while next_send <= now and burst < 50:
-                self.safe_send(P.pack(P.DATA, self.sid, seq=seq, size=a.size))
+                ts = time.time()
+                self.safe_send(P.pack(P.DATA, self.sid, seq=seq, size=a.size, timestamp=ts))
+                if a.show_packets and seq % a.show_packets == 0:
+                    print("[pkt] %s  sent DATA seq=%-7d timestamp=%s  (%d bytes)"
+                          % (a.name, seq, P.fmt_time(ts), a.size), flush=True)
                 seq += 1
                 burst += 1
                 next_send += gap
         return seq, time.time() - start
 
     def finish(self, sent):
-        for _ in range(self.a.retries):
+        for attempt in range(1, self.a.retries + 1):
             self.safe_send(P.pack(P.BYE, self.sid, body=(sent,)))
-            if self.summary_evt.wait(self.a.timeout):
+            if self.summary_evt.wait(self.backoff(attempt)):
                 s = self.summary
                 self.log("SUMMARY: sent %d, server received %d, lost %d (%.2f%%), "
                          "avg delay %.1f ms, avg throughput %.2f Mbps"
@@ -218,6 +234,8 @@ def main():
     ap.add_argument("--timeout", type=float, default=1.0, help="seconds to wait per retry")
     ap.add_argument("--print-every", type=int, default=2, help="print every Nth REPORT")
     ap.add_argument("--quiet", action="store_true", help="do not print REPORTs")
+    ap.add_argument("--show-packets", type=int, nargs="?", const=1, default=0, metavar="N",
+                    help="print every Nth DATA packet sent: seq + timestamp (no N = every packet)")
     a = ap.parse_args()
     if a.size < P.MIN_DATA_SIZE:
         sys.exit("--size must be at least %d bytes" % P.MIN_DATA_SIZE)

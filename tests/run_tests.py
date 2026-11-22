@@ -3,7 +3,7 @@
 run_tests.py - Automated functional test cases, executed in Mininet with the
 real POX controller and the real UDP client/server.
 
-    sudo python3 tests/run_tests.py                 # all test cases (~4 minutes)
+    sudo python3 tests/run_tests.py                 # all test cases (~5 minutes)
     sudo python3 tests/run_tests.py --only TC03 TC08
     sudo python3 tests/run_tests.py --list
 
@@ -15,6 +15,7 @@ written to tests/TEST_REPORT.md.
 import argparse
 import csv
 import os
+import re
 import subprocess
 import sys
 import time
@@ -31,6 +32,7 @@ from mininet.log import setLogLevel  # noqa: E402
 PY = sys.executable
 SERVER = os.path.join(ROOT, "app", "udp_server.py")
 CLIENT = os.path.join(ROOT, "app", "udp_client.py")
+SNIFFER = os.path.join(ROOT, "tools", "packet_sniffer.py")
 IP = {h: v["ip"] for h, v in nc.HOSTS.items()}
 
 
@@ -305,6 +307,62 @@ def tc12(env):
                "session %s" % (code, "HELLO again" in out, "session T12" in slog2)
 
 
+def tc13(env):
+    srv = env.server("h3", 5001, "--trace", "--show-packets", "50")
+    pcap = os.path.join(env.dir, "h3.pcap")
+    sniffer = env.net.get("h3").popen([PY, SNIFFER, "--port", "5001", "--count", "200",
+                                       "--duration", "10", "--every", "50", "--write", pcap],
+                                      stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=ROOT)
+    env.procs.append(sniffer)
+    time.sleep(1.0)
+    code, out = env.finish(env.client("h1", "h3", 5001, 1, 3, "T13", 40013,
+                                      "--show-packets", "50"))
+    sniff = env.finish(sniffer, 15)[1]
+    slog = env.stop(srv)
+    rows = list(csv.DictReader(open(os.path.join(env.dir, "trace_T13.csv"))))
+    seqs = [int(r["seq"]) for r in rows]
+    delays = [float(r["delay_ms"]) for r in rows]
+    m = re.search(r"done sending: (\d+) packets", out)
+    sent = int(m.group(1)) if m else -1
+    in_order = seqs == list(range(len(seqs)))
+    wire = "HELLO" in sniff and re.search(r"DATA\s+[0-9a-f]{8}\s+0\s", sniff) is not None \
+        and os.path.exists(pcap)
+    ok = code == 0 and in_order and len(rows) == sent and delays and 0 < max(delays) < 100 \
+        and "sent DATA seq=0 " in out and "[pkt] T13  seq=0 " in slog and wire
+    return ok, "client printed seq+timestamp %s, server printed seq+send/recv time+delay %s, " \
+               "trace: %d of %d packets, seq 0..%d in order %s, delay %.2f-%.2f ms, sniffer " \
+               "decoded HELLO + DATA seq 0 on the wire %s" % (
+                   "sent DATA seq=0 " in out, "[pkt] T13  seq=0 " in slog, len(rows), sent,
+                   (seqs or [0])[-1], in_order, min(delays or [0]), max(delays or [0]), wire)
+
+
+def tc14(env):
+    s3, s4 = env.server("h3", 5001), env.server("h4", 5002)
+    pairs = [("h1", "h3", 5001), ("h2", "h4", 5002), ("h1", "h4", 5002), ("h2", "h3", 5001)]
+    clients = []
+    for i in range(8):                          # a new 2 Mbps flow every 1.5 s, all end together
+        src, dst, port = pairs[i % 4]
+        clients.append(env.client(src, dst, port, 2, 24 - 1.5 * i, "T14" + chr(65 + i),
+                                  43001 + i, "--quiet"))
+        time.sleep(1.5)
+    time.sleep(6)
+    table = env.flows_s1()
+    res = [env.finish(c) for c in clients]
+    env.stop(s3)
+    env.stop(s4)
+    ports = sorted({out_port(l) for l in table.splitlines()
+                    if "priority=300" in l and "tp_src=430" in l} - {None})
+    pm = nc.port_map()
+    path_of = {pm[("s1", "s2")]: "P1", pm[("s1", "s3")]: "P2", pm[("s1", "s4")]: "P3"}
+    per_path = {path_of.get(p, p): sum(1 for l in table.splitlines() if "priority=300" in l
+                                       and "tp_src=430" in l and out_port(l) == p) for p in ports}
+    losses = [summary_loss(o) for _, o in res]
+    ok = all(c == 0 for c, _ in res) and all(l is not None and l < 2 for l in losses) \
+        and len(ports) == 3
+    return ok, "8 flows of 2 Mbps (16 Mbps, P1 alone has 10): flows per path %s, losses %s %%" % (
+        per_path, losses)
+
+
 TESTS = [
     ("TC01", "Topology and connectivity (pingall)", "Mininet + SDN", "app_aware", tc01),
     ("TC02", "Controller installs base flow rules", "Mininet + SDN", "app_aware", tc02),
@@ -318,6 +376,10 @@ TESTS = [
     ("TC10", "Link failure: flows moved, ping still works", "Robustness", "app_aware", tc10),
     ("TC11", "Application QoS feedback reaches controller", "Socket-SDN integration", "app_aware", tc11),
     ("TC12", "Service failure: server restart, client recovers", "Robustness", "app_aware", tc12),
+    ("TC13", "Packet trace: sequence numbers and timestamps", "Socket implementation",
+     "app_aware", tc13),
+    ("TC14", "8 flows spread over the three paths", "Dynamic SDN (load balancing)",
+     "app_aware", tc14),
 ]
 
 

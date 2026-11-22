@@ -13,6 +13,13 @@ Threads
                      idle sessions
     (a lock protects the session table, which both threads use)
 
+Packet-level view (sequence numbers and timestamps)
+    Every DATA packet carries a sequence number and the sender's timestamp.
+    --show-packets [N]  prints every Nth packet (seq, send time, receive time,
+                        one-way delay); gaps (lost packets), late (out-of-order)
+                        and duplicate packets are always printed
+    --trace             writes trace_<flow>.csv with one row per packet
+
 Socket-SDN integration
     The server tells the SDN controller what the APPLICATION sees: when a
     session starts (with the rate the client asked for), its QoS every
@@ -22,6 +29,7 @@ Socket-SDN integration
 
 Example (from the Mininet CLI):
     h3 python3 app/udp_server.py --port 5001 --out-dir /tmp/demo &
+    h4 python3 app/udp_server.py --port 5003 --out-dir /tmp/demo --show-packets > /tmp/pkts.log 2>&1 &
 """
 
 import argparse
@@ -53,7 +61,8 @@ def log(msg):
 class Session(object):
     """Statistics for one client session."""
 
-    def __init__(self, sid, addr, hello, server_ip, server_port, csv_path, now):
+    def __init__(self, sid, addr, hello, server_ip, server_port, csv_path, now,
+                 trace_path=None, show_every=0):
         self.sid = sid
         self.addr = addr
         self.name = hello["name"] or "%s:%d" % addr
@@ -81,6 +90,18 @@ class Session(object):
         if new:
             self.csv.writerow(["time", "label", "throughput_mbps", "packets", "lost",
                                "loss_pct", "avg_delay_ms", "jitter_ms"])
+        # packet-level view
+        self.seqs = P.SeqTracker()
+        self.show_every = show_every
+        self._event_t, self._suppressed = 0.0, 0
+        self.trace_file = self.trace = None
+        if trace_path:
+            new = not os.path.exists(trace_path)
+            self.trace_file = open(trace_path, "a", newline="")
+            self.trace = csv.writer(self.trace_file)
+            if new:
+                self.trace.writerow(["recv_time", "seq", "send_time", "delay_ms", "status",
+                                     "missing_before"])
 
     def flow_tuple(self):
         """(client_ip, client_port, server_ip, server_port) - the flow the controller sees."""
@@ -88,6 +109,12 @@ class Session(object):
 
     def on_data(self, msg, now):
         transit = now - msg.timestamp
+        status, first, n_missing = self.seqs.update(msg.seq)
+        if self.trace is not None:
+            self.trace.writerow(["%.6f" % now, msg.seq, "%.6f" % msg.timestamp,
+                                 "%.3f" % (1000 * transit), status, n_missing])
+        if self.show_every:
+            self.show_packet(msg, now, transit, status, first, n_missing)
         if self.prev_transit is not None:
             self.jitter += (abs(transit - self.prev_transit) - self.jitter) / 16.0
         self.prev_transit = transit
@@ -100,6 +127,29 @@ class Session(object):
         self.i_delay += transit
         self.i_max_seq = max(self.i_max_seq, msg.seq)
         self.last_seen = now
+
+    def show_packet(self, msg, now, transit, status, first, n):
+        """One line per packet: seq, send time (from the header), receive time, delay."""
+        note = ""
+        if status == "gap":
+            span = "seq %d" % first if n == 1 else "seq %d-%d" % (first, first + n - 1)
+            note = "  <- GAP: %s missing (%d lost)" % (span, n)
+        elif status == "late":
+            note = "  <- LATE: arrived after seq %d (out of order)" % self.seqs.max_seq
+        elif status == "dup":
+            note = "  <- DUPLICATE"
+        if note:                       # always shown, but at most 4 lines per second
+            if now - self._event_t < 0.25:
+                self._suppressed += 1
+                return
+            if self._suppressed:
+                note += "  (+%d more not shown)" % self._suppressed
+            self._event_t, self._suppressed = now, 0
+        elif msg.seq % self.show_every:
+            return
+        print("[pkt] %s  seq=%-7d sent=%s  recv=%s  delay=%6.2f ms%s"
+              % (self.name, msg.seq, P.fmt_time(msg.timestamp), P.fmt_time(now),
+                 1000 * transit, note), flush=True)
 
     def close_interval(self, t_end, interval):
         """Finish the current interval: returns the stats dict and writes a CSV row."""
@@ -121,6 +171,8 @@ class Session(object):
                            ("%.3f" % stats["delay_ms"]) if self.i_pkts else "",
                            "%.3f" % stats["jitter_ms"]])
         self.csv_file.flush()
+        if self.trace_file is not None:
+            self.trace_file.flush()
         self.i_pkts = self.i_bytes = 0
         self.i_delay = 0.0
         self.i_max_seq = -1
@@ -135,10 +187,12 @@ class Session(object):
                 self.bytes * 8 / dur / 1e6)
 
     def close(self):
-        try:
-            self.csv_file.close()
-        except OSError:
-            pass
+        for fh in (self.csv_file, self.trace_file):
+            try:
+                if fh is not None:
+                    fh.close()
+            except OSError:
+                pass
 
 
 class UDPServer(object):
@@ -234,7 +288,9 @@ class UDPServer(object):
             {"name": "", "rate_mbps": 0.0, "size": resume.size, "duration": 0.0}
         name = hello["name"] or "%s_%d" % (addr[0], addr[1])
         csv_path = os.path.join(self.args.out_dir, "flow_%s.csv" % name)
-        s = Session(sid, addr, hello, self.local_ip_for(addr), self.args.port, csv_path, now)
+        trace_path = os.path.join(self.args.out_dir, "trace_%s.csv" % name) if self.args.trace else None
+        s = Session(sid, addr, hello, self.local_ip_for(addr), self.args.port, csv_path, now,
+                    trace_path, self.args.show_packets)
         self.sessions[key] = s
         self._resume_info[key] = hello
         self.counters["sessions"] += 1
@@ -243,8 +299,9 @@ class UDPServer(object):
         else:
             self.send(P.pack(P.HELLO_ACK, sid, body=(int(self.args.interval * 1000),
                                                        self.args.max_sessions)), addr)
-        log("session %s from %s:%d started: %.1f Mbps, %d-byte packets (%d active)"
-            % (s.name, addr[0], addr[1], s.rate, s.size, len(self.sessions)))
+        log("session %s from %s:%d started: %s Mbps, %d-byte packets (%d active)"
+            % (s.name, addr[0], addr[1], ("%.1f" if s.rate >= 1 else "%.2f") % s.rate, s.size,
+               len(self.sessions)))
         self.notify_controller({"type": "session_start", "name": s.name, "t": now,
                                 "flow": s.flow_tuple(), "rate_mbps": s.rate, "size": s.size})
 
@@ -262,8 +319,9 @@ class UDPServer(object):
         self.finished[key] = (summ, "bye")
         self.send(P.pack(P.SUMMARY, sid, body=summ), addr)
         s.close()
-        log("session %s finished: sent %d, received %d, lost %d (%.2f%%), avg delay %.1f ms"
-            % (s.name, summ[0], summ[1], summ[2], summ[3], summ[4]))
+        log("session %s finished: sent %d, received %d, lost %d (%.2f%%), avg delay %.1f ms, "
+            "out of order %d, duplicates %d" % (s.name, summ[0], summ[1], summ[2], summ[3],
+                                                 summ[4], s.seqs.reordered, s.seqs.duplicates))
         self.notify_controller({"type": "session_end", "name": s.name, "t": now,
                                 "flow": s.flow_tuple(), "reason": "bye", "loss_pct": summ[3]})
 
@@ -305,6 +363,13 @@ class UDPServer(object):
         log("listening on UDP %s:%d (max %d sessions, report every %.1fs, feedback=%s)"
             % (self.args.bind, self.args.port, self.args.max_sessions, self.args.interval,
                self.args.feedback if self.feedback else "off"))
+        if self.args.show_packets:
+            n = self.args.show_packets
+            which = "every DATA packet" if n == 1 else "every %dth DATA packet" % n
+            log("packet view: printing %s with its seq and timestamps (gaps, late and "
+                "duplicate packets are always printed)" % which)
+        if self.args.trace:
+            log("per-packet trace: %s/trace_<flow>.csv" % self.args.out_dir)
         try:
             while not self.stop.is_set() and time.time() < end:
                 try:
@@ -338,6 +403,11 @@ def main():
     ap.add_argument("--session-timeout", type=float, default=15.0,
                     help="close a session after this many seconds without packets")
     ap.add_argument("--out-dir", default=".", help="where flow_<name>.csv files are written")
+    ap.add_argument("--show-packets", type=int, nargs="?", const=1, default=0, metavar="N",
+                    help="print every Nth DATA packet with its seq and timestamps "
+                         "(no N = every packet)")
+    ap.add_argument("--trace", action="store_true",
+                    help="write trace_<flow>.csv: one row per packet (seq, times, delay, status)")
     ap.add_argument("--feedback", default=DEFAULT_FEEDBACK,
                     help="UNIX socket of the SDN controller ('none' to disable)")
     args = ap.parse_args()
